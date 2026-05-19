@@ -13,6 +13,7 @@ import Drivers from './pages/Drivers';
 import Trips from './pages/Trips';
 import DriverDetails from './pages/DriverDetails';
 import TripDetails from './pages/TripDetails';
+import MapDashboard from './pages/MapDashboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -43,6 +44,7 @@ const AuthenticatedApp = () => {
           <Route path="/drivers/:id" element={<DriverDetails />} />
           <Route path="/trips" element={<Trips />} />
           <Route path="/trips/:id" element={<TripDetails />} />
+          <Route path="/map" element={<MapDashboard />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>

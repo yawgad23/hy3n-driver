@@ -54,6 +54,19 @@
       "type": "number",
       "default": 0,
       "description": "Total earnings in USD"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Current latitude"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Current longitude"
+    },
+    "last_location_update": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last location update timestamp"
     }
   },
   "required": [
