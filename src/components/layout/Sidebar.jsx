@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, MapPin, Car, Map } from "lucide-react";
+import { LayoutDashboard, Users, MapPin, Car, Map, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -7,6 +7,7 @@ const navItems = [
   { label: "Drivers", path: "/drivers", icon: Users },
   { label: "Trips", path: "/trips", icon: MapPin },
   { label: "Map", path: "/map", icon: Map },
+  { label: "Analytics", path: "/analytics", icon: BarChart3 },
 ];
 
 export default function Sidebar() {

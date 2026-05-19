@@ -14,6 +14,7 @@ import Trips from './pages/Trips';
 import DriverDetails from './pages/DriverDetails';
 import TripDetails from './pages/TripDetails';
 import MapDashboard from './pages/MapDashboard';
+import Analytics from './pages/Analytics';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -45,6 +46,7 @@ const AuthenticatedApp = () => {
           <Route path="/trips" element={<Trips />} />
           <Route path="/trips/:id" element={<TripDetails />} />
           <Route path="/map" element={<MapDashboard />} />
+          <Route path="/analytics" element={<Analytics />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>
