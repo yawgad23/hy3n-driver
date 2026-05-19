@@ -1,0 +1,64 @@
+{
+  "name": "Driver",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "Driver's full name"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address"
+    },
+    "avatar_url": {
+      "type": "string",
+      "description": "Profile photo URL"
+    },
+    "license_number": {
+      "type": "string",
+      "description": "Driver's license number"
+    },
+    "vehicle_model": {
+      "type": "string",
+      "description": "Vehicle make and model"
+    },
+    "vehicle_plate": {
+      "type": "string",
+      "description": "License plate number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "on_trip",
+        "offline",
+        "suspended"
+      ],
+      "default": "active",
+      "description": "Current driver status"
+    },
+    "rating": {
+      "type": "number",
+      "description": "Average rating (1-5)"
+    },
+    "total_trips": {
+      "type": "number",
+      "default": 0,
+      "description": "Total completed trips"
+    },
+    "total_earnings": {
+      "type": "number",
+      "default": 0,
+      "description": "Total earnings in USD"
+    }
+  },
+  "required": [
+    "full_name",
+    "phone",
+    "status"
+  ]
+}

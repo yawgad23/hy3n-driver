@@ -1,0 +1,60 @@
+{
+  "name": "Trip",
+  "type": "object",
+  "properties": {
+    "driver_id": {
+      "type": "string",
+      "description": "Reference to the driver"
+    },
+    "driver_name": {
+      "type": "string",
+      "description": "Driver name for quick display"
+    },
+    "pickup_location": {
+      "type": "string",
+      "description": "Pickup address"
+    },
+    "dropoff_location": {
+      "type": "string",
+      "description": "Dropoff address"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed",
+        "cancelled"
+      ],
+      "default": "pending",
+      "description": "Trip status"
+    },
+    "fare": {
+      "type": "number",
+      "description": "Trip fare in USD"
+    },
+    "distance_km": {
+      "type": "number",
+      "description": "Trip distance in kilometers"
+    },
+    "duration_min": {
+      "type": "number",
+      "description": "Trip duration in minutes"
+    },
+    "passenger_name": {
+      "type": "string",
+      "description": "Passenger name"
+    },
+    "trip_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the trip started"
+    }
+  },
+  "required": [
+    "driver_name",
+    "pickup_location",
+    "dropoff_location",
+    "status"
+  ]
+}
