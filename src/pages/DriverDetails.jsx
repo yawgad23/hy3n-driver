@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { ArrowLeft, Phone, Mail, Car, MapPin, Star, DollarSign, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import RatingStars from "../components/drivers/RatingStars";
+import RatingDistribution from "../components/drivers/RatingDistribution";
+import PassengerReviews from "../components/drivers/PassengerReviews";
+import RatingTrends from "../components/drivers/RatingTrends";
 
 const statusStyles = {
   active: "bg-accent/10 text-accent border-accent/20",
@@ -18,12 +22,31 @@ const statusStyles = {
 export default function DriverDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: driver, isLoading } = useQuery({
     queryKey: ["driver", id],
     queryFn: () => base44.entities.Driver.get(id),
     enabled: !!id,
   });
+
+  const updateDriverMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Driver.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["driver", id] });
+    },
+  });
+
+  const handleAddReview = async (review) => {
+    const newRating = ((driver.rating || 0) * (driver.total_trips || 0) + review.rating) / ((driver.total_trips || 0) + 1);
+    updateDriverMutation.mutate({
+      id: driver.id,
+      data: {
+        rating: newRating,
+        total_trips: (driver.total_trips || 0) + 1,
+      },
+    });
+  };
 
   if (isLoading || !driver) {
     return (
@@ -60,12 +83,8 @@ export default function DriverDetails() {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 {driver.rating && (
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-chart-4 fill-chart-4" />
-                    <span className="font-semibold">{driver.rating.toFixed(1)}</span>
-                  </div>
+                  <RatingStars rating={driver.rating} size="md" />
                 )}
-                <span className="text-muted-foreground">•</span>
                 <span className="text-sm text-muted-foreground">{driver.total_trips || 0} trips</span>
               </div>
               <Badge variant="outline" className={cn(statusStyles[driver.status] || "")}>
@@ -150,6 +169,21 @@ export default function DriverDetails() {
           </Card>
         </motion.div>
       )}
+
+      {/* Rating Analytics */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <div className="grid gap-6">
+          <RatingDistribution 
+            rating={driver.rating || 0} 
+            totalReviews={driver.total_trips || 0}
+          />
+          <RatingTrends />
+          <PassengerReviews 
+            reviews={[]}
+            onAddReview={handleAddReview}
+          />
+        </div>
+      </motion.div>
     </div>
   );
 }
