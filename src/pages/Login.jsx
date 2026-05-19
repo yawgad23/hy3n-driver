@@ -40,9 +40,14 @@ export default function Login() {
       footer={
         <>
           Don't have an account?{" "}
-          <Link to="/register" className="text-primary font-medium hover:underline">
-            Create one
-          </Link>
+          <div className="flex flex-col gap-1 mt-2">
+            <Link to="/register" className="text-primary font-medium hover:underline">
+              Sign up (Admin)
+            </Link>
+            <Link to="/driver-register" className="text-accent font-medium hover:underline">
+              Become a driver
+            </Link>
+          </div>
         </>
       }
     >

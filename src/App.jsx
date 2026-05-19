@@ -19,6 +19,7 @@ import Schedule from './pages/Schedule';
 import Shifts from './pages/Shifts';
 import DriverApp from './pages/DriverApp';
 import DriverEarningsDashboard from './pages/DriverEarningsDashboard';
+import DriverRegister from './pages/DriverRegister';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -56,6 +57,7 @@ const AuthenticatedApp = () => {
           <Route path="/driver-app" element={<DriverApp />} />
           <Route path="/earnings" element={<DriverEarningsDashboard />} />
         </Route>
+        <Route path="/driver-register" element={<DriverRegister />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </TabStateProvider>
