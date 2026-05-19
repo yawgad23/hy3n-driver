@@ -5,13 +5,27 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, MapPin } from "lucide-react";
-import TripRow from "../components/trips/TripRow";
+import TripRowWithCheckbox from "../components/trips/TripRowWithCheckbox";
 import AddTripDialog from "../components/trips/AddTripDialog";
+import BulkTripActions from "../components/trips/BulkTripActions";
 
 export default function Trips() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedTrips, setSelectedTrips] = useState([]);
   const queryClient = useQueryClient();
+
+  const toggleSelectTrip = (tripId) => {
+    setSelectedTrips(prev => 
+      prev.includes(tripId) 
+        ? prev.filter(id => id !== tripId)
+        : [...prev, tripId]
+    );
+  };
+
+  const clearSelection = () => {
+    setSelectedTrips([]);
+  };
 
   const { data: trips = [], isLoading } = useQuery({
     queryKey: ["trips"],
@@ -78,10 +92,22 @@ export default function Trips() {
       ) : (
         <div className="space-y-3">
           {filtered.map((trip, index) => (
-            <TripRow key={trip.id} trip={trip} index={index} />
+            <TripRowWithCheckbox 
+              key={trip.id} 
+              trip={trip} 
+              index={index}
+              isSelected={selectedTrips.includes(trip.id)}
+              onToggleSelect={toggleSelectTrip}
+            />
           ))}
         </div>
       )}
+      
+      {/* Bulk Actions Bar */}
+      <BulkTripActions 
+        selectedTrips={selectedTrips}
+        onBulkUpdate={clearSelection}
+      />
     </div>
   );
 }

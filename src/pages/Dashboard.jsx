@@ -7,6 +7,9 @@ import StatsCard from "../components/dashboard/StatsCard";
 import RecentTrips from "../components/dashboard/RecentTrips";
 import ActiveDrivers from "../components/dashboard/ActiveDrivers";
 import NotificationPermissionBanner from "@/components/NotificationPermissionBanner";
+import QuickActions from "../components/dashboard/QuickActions";
+import PerformanceMetrics from "../components/dashboard/PerformanceMetrics";
+import RealTimeActivityFeed from "../components/dashboard/RealTimeActivityFeed";
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
@@ -78,7 +81,10 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      {/* Content Grid */}
+      {/* Quick Actions */}
+      <QuickActions />
+
+      {/* Content Grid - Row 1 */}
       <div className="grid lg:grid-cols-2 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -94,6 +100,22 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45 }}
+          className="bg-card rounded-2xl border border-border p-6"
+        >
+          <h2 className="font-heading font-semibold text-base mb-4">Live Activity</h2>
+          <RealTimeActivityFeed />
+        </motion.div>
+      </div>
+
+      {/* Performance Metrics */}
+      <PerformanceMetrics />
+
+      {/* Content Grid - Row 2 */}
+      <div className="grid lg:grid-cols-1 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
           className="bg-card rounded-2xl border border-border p-6"
         >
           <h2 className="font-heading font-semibold text-base mb-4">Active Drivers</h2>

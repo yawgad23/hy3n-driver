@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Search, Filter } from "lucide-react";
 import DriverCard from "../components/drivers/DriverCard";
 import AddDriverDialog from "../components/drivers/AddDriverDialog";
 

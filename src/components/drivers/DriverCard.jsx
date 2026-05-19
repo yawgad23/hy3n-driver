@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, Phone, Car, MapPin, User, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import DriverQuickActions from "./DriverQuickActions";
 
 const statusStyles = {
   active: "bg-accent/10 text-accent border-accent/20",
@@ -51,9 +52,12 @@ export default function DriverCard({ driver, index = 0 }) {
                   </span>
                 </div>
               </div>
-              <Badge variant="outline" className={cn("shrink-0", statusStyles[driver.status] || "")}>
-                {driver.status === "on_trip" ? "on trip" : driver.status}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className={cn("shrink-0", statusStyles[driver.status] || "")}>
+                  {driver.status === "on_trip" ? "on trip" : driver.status}
+                </Badge>
+                <DriverQuickActions driver={driver} />
+              </div>
             </div>
 
             {/* Details */}
