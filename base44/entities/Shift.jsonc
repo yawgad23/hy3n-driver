@@ -58,9 +58,7 @@
   "rls": {
     "create": {
       "user_condition": {
-        "email": {
-          "$exists": true
-        }
+        "role": "admin"
       }
     },
     "read": {
