@@ -17,6 +17,7 @@ import MapDashboard from './pages/MapDashboard';
 import Analytics from './pages/Analytics';
 import Schedule from './pages/Schedule';
 import Shifts from './pages/Shifts';
+import DriverApp from './pages/DriverApp';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -51,6 +52,7 @@ const AuthenticatedApp = () => {
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/shifts" element={<Shifts />} />
+          <Route path="/driver-app" element={<DriverApp />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>
