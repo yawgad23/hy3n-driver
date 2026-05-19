@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
-import { Icon } from "leaflet";
+import { divIcon } from "leaflet";
 import { Car, MapPin, Navigation } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,7 @@ const createDriverIcon = (status) => {
     suspended: "#ef4444",
   };
   
-  return new Icon.DivIcon({
+  return divIcon({
     html: `
       <div style="
         background: ${colors[status] || colors.active};
@@ -40,7 +40,7 @@ const createDriverIcon = (status) => {
 };
 
 const createTripIcon = () => {
-  return new Icon.DivIcon({
+  return divIcon({
     html: `
       <div style="
         background: #f59e0b;
