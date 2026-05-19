@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
-import StatsCard from "../dashboard/StatsCard";
+import StatsCard from "../components/dashboard/StatsCard";
 import DriverShiftCard from "../components/schedule/DriverShiftCard";
 import ShiftAlertsPanel from "../components/schedule/ShiftAlertsPanel";
 

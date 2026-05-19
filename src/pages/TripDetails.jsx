@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import TripRouteMap from "@/components/trips/TripRouteMap";
 
 const statusStyles = {
   completed: "bg-accent/10 text-accent border-accent/20",
@@ -64,22 +65,32 @@ export default function TripDetails() {
 
           {/* Route */}
           <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                <MapPin className="w-4 h-4 text-primary" />
+            <TripRouteMap
+              pickupLat={trip.pickup_lat}
+              pickupLng={trip.pickup_lng}
+              dropoffLat={trip.dropoff_lat}
+              dropoffLng={trip.dropoff_lng}
+              pickupLocation={trip.pickup_location}
+              dropoffLocation={trip.dropoff_location}
+            />
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground mb-0.5">Pickup</p>
+                  <p className="font-medium">{trip.pickup_location}</p>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-xs text-muted-foreground mb-1">Pickup</p>
-                <p className="font-medium">{trip.pickup_location}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 mt-0.5">
-                <Navigation className="w-4 h-4 text-accent" />
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-muted-foreground mb-1">Dropoff</p>
-                <p className="font-medium">{trip.dropoff_location}</p>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                  <Navigation className="w-4 h-4 text-accent" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground mb-0.5">Dropoff</p>
+                  <p className="font-medium">{trip.dropoff_location}</p>
+                </div>
               </div>
             </div>
           </div>
