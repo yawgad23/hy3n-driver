@@ -5,11 +5,14 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { TabStateProvider } from './lib/TabStateContext';
 
 import AppLayout from './components/layout/AppLayout';
 import Dashboard from './pages/Dashboard';
 import Drivers from './pages/Drivers';
 import Trips from './pages/Trips';
+import DriverDetails from './pages/DriverDetails';
+import TripDetails from './pages/TripDetails';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -32,14 +35,18 @@ const AuthenticatedApp = () => {
   }
 
   return (
-    <Routes>
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/drivers" element={<Drivers />} />
-        <Route path="/trips" element={<Trips />} />
-      </Route>
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <TabStateProvider>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/drivers" element={<Drivers />} />
+          <Route path="/drivers/:id" element={<DriverDetails />} />
+          <Route path="/trips" element={<Trips />} />
+          <Route path="/trips/:id" element={<TripDetails />} />
+        </Route>
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </TabStateProvider>
   );
 };
 

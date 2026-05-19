@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, Phone, Car, MapPin, User } from "lucide-react";
+import { Star, Phone, Car, MapPin, User, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 const statusStyles = {
   active: "bg-accent/10 text-accent border-accent/20",
@@ -12,13 +13,18 @@ const statusStyles = {
 };
 
 export default function DriverCard({ driver, index = 0 }) {
+  const navigate = useNavigate();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
-      <Card className="p-5 hover:shadow-lg transition-all duration-300 group border-border/50 hover:border-primary/20">
+      <Card 
+        className="p-5 hover:shadow-lg transition-all duration-300 group border-border/50 hover:border-primary/20 cursor-pointer"
+        onClick={() => navigate(`/drivers/${driver.id}`)}
+      >
         <div className="flex items-start gap-4">
           {/* Avatar */}
           <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
@@ -84,6 +90,8 @@ export default function DriverCard({ driver, index = 0 }) {
               </div>
             )}
           </div>
+
+          <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0 mt-1" />
         </div>
       </Card>
     </motion.div>

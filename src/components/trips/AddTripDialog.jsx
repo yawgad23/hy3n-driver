@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const initialForm = {
   driver_name: "",
@@ -23,6 +25,7 @@ export default function AddTripDialog({ onTripAdded }) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -31,16 +34,29 @@ export default function AddTripDialog({ onTripAdded }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    await base44.entities.Trip.create({
-      ...form,
-      fare: form.fare ? Number(form.fare) : undefined,
-      distance_km: form.distance_km ? Number(form.distance_km) : undefined,
-      duration_min: form.duration_min ? Number(form.duration_min) : undefined,
-    });
-    setSaving(false);
-    setForm(initialForm);
-    setOpen(false);
-    onTripAdded?.();
+    try {
+      // Optimistic update - close dialog immediately
+      setOpen(false);
+      setForm(initialForm);
+      
+      // Create in background
+      const newTrip = await base44.entities.Trip.create({
+        ...form,
+        fare: form.fare ? Number(form.fare) : undefined,
+        distance_km: form.distance_km ? Number(form.distance_km) : undefined,
+        duration_min: form.duration_min ? Number(form.duration_min) : undefined,
+      });
+      
+      // Navigate to new trip details
+      navigate(`/trips/${newTrip.id}`);
+      onTripAdded?.();
+      toast.success("Trip logged successfully");
+    } catch (error) {
+      toast.error("Failed to log trip");
+      setOpen(true);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

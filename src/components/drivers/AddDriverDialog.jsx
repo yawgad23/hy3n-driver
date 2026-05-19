@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const initialForm = {
   full_name: "",
@@ -21,6 +23,7 @@ export default function AddDriverDialog({ onDriverAdded }) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -29,11 +32,24 @@ export default function AddDriverDialog({ onDriverAdded }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    await base44.entities.Driver.create(form);
-    setSaving(false);
-    setForm(initialForm);
-    setOpen(false);
-    onDriverAdded?.();
+    try {
+      // Optimistic update - close dialog immediately
+      setOpen(false);
+      setForm(initialForm);
+      
+      // Create in background
+      const newDriver = await base44.entities.Driver.create(form);
+      
+      // Navigate to new driver details
+      navigate(`/drivers/${newDriver.id}`);
+      onDriverAdded?.();
+      toast.success("Driver added successfully");
+    } catch (error) {
+      toast.error("Failed to add driver");
+      setOpen(true);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
