@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { Users, MapPin, Car, Navigation, Radio } from "lucide-react";
+import { Users, MapPin, Car, Navigation, Radio, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FleetMap from "../components/map/FleetMap";
 import DispatchAnalytics from "../components/dispatch/DispatchAnalytics";
+import VehicleStatusPanel from "../components/map/VehicleStatusPanel";
 import { cn } from "@/lib/utils";
 import { useSimulatedDriverTracking } from "@/hooks/useSimulatedDriverTracking";
 
@@ -36,13 +37,12 @@ export default function MapDashboard() {
     queryFn: () => base44.entities.Trip.list("-created_date"),
   });
 
-  // Enable real-time tracking for drivers on trips
-  const driversOnTrip = drivers.filter(d => d.status === "on_trip");
-  useSimulatedDriverTracking(liveTrackingEnabled ? driversOnTrip : []);
-
   const activeDrivers = drivers.filter(d => d.status === "active" || d.status === "on_trip");
   const pendingTrips = trips.filter(t => t.status === "pending" || t.status === "in_progress");
   const completedTrips = trips.filter(t => t.status === "completed");
+
+  // Enable real-time tracking for all active drivers
+  const { positions, movementStatus } = useSimulatedDriverTracking(liveTrackingEnabled ? activeDrivers : []);
 
   const filteredDrivers = filter === "all" 
     ? drivers 
@@ -164,13 +164,22 @@ export default function MapDashboard() {
         <DispatchAnalytics />
       </motion.div>
 
-      {/* Lists */}
+      {/* Real-time Vehicle Status & Driver List */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Active Drivers */}
+        {/* Vehicle Status Panel */}
         <motion.div 
           initial={{ opacity: 0, x: -20 }} 
           animate={{ opacity: 1, x: 0 }} 
           transition={{ delay: 0.35 }}
+        >
+          <VehicleStatusPanel drivers={activeDrivers} movementStatus={movementStatus} />
+        </motion.div>
+
+        {/* Active Drivers List */}
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }} 
+          animate={{ opacity: 1, x: 0 }} 
+          transition={{ delay: 0.4 }}
           className="bg-card rounded-2xl border border-border p-5"
         >
           <h2 className="font-heading font-semibold text-base mb-4">Active Drivers</h2>
