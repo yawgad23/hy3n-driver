@@ -3,7 +3,9 @@ import AddDriverProfileDialog from "@/components/driver/AddDriverProfileDialog";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Car } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Car, LogIn, UserPlus } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function DriverApp() {
   const { data: driver, isLoading } = useQuery({
@@ -36,12 +38,26 @@ export default function DriverApp() {
 
       {!driver ? (
         <Card>
-          <CardContent className="p-12 text-center">
+          <CardContent className="p-12 text-center space-y-4">
             <Car className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
             <h3 className="font-heading font-semibold text-lg mb-2">No Driver Profile</h3>
             <p className="text-muted-foreground text-sm mb-4">
               Create a driver profile to start receiving trip requests
             </p>
+            <div className="flex gap-3 justify-center">
+              <Button asChild>
+                <Link to="/driver-register">
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Sign Up as Driver
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/login">
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Sign In
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (

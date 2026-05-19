@@ -10,6 +10,7 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import DriverSuggestions from "./DriverSuggestions";
+import LocationAutocomplete from "@/components/ui/location-autocomplete";
 
 const initialForm = {
   driver_name: "",
@@ -157,11 +158,21 @@ export default function AddTripDialog({ onTripAdded }) {
             </div>
             <div className="col-span-2">
               <Label>Pickup Location *</Label>
-              <Input value={form.pickup_location} onChange={(e) => handleChange("pickup_location", e.target.value)} required />
+              <LocationAutocomplete
+                value={form.pickup_location}
+                onChange={(value) => handleChange("pickup_location", value)}
+                placeholder="Enter pickup address"
+                type="pickup"
+              />
             </div>
             <div className="col-span-2">
               <Label>Dropoff Location *</Label>
-              <Input value={form.dropoff_location} onChange={(e) => handleChange("dropoff_location", e.target.value)} required />
+              <LocationAutocomplete
+                value={form.dropoff_location}
+                onChange={(value) => handleChange("dropoff_location", value)}
+                placeholder="Enter dropoff address"
+                type="dropoff"
+              />
             </div>
             <div>
               <Label>Fare ($)</Label>
@@ -249,11 +260,21 @@ export default function AddTripDialog({ onTripAdded }) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <Label>Pickup Location *</Label>
-                  <Input value={form.pickup_location} onChange={(e) => handleChange("pickup_location", e.target.value)} placeholder="Enter pickup address" />
+                  <LocationAutocomplete
+                    value={form.pickup_location}
+                    onChange={(value) => handleChange("pickup_location", value)}
+                    placeholder="Enter pickup address"
+                    type="pickup"
+                  />
                 </div>
                 <div className="col-span-2">
                   <Label>Dropoff Location *</Label>
-                  <Input value={form.dropoff_location} onChange={(e) => handleChange("dropoff_location", e.target.value)} placeholder="Enter dropoff address" />
+                  <LocationAutocomplete
+                    value={form.dropoff_location}
+                    onChange={(value) => handleChange("dropoff_location", value)}
+                    placeholder="Enter dropoff address"
+                    type="dropoff"
+                  />
                 </div>
               </div>
               
