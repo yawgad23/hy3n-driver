@@ -16,13 +16,15 @@ import {
   CheckCircle,
   XCircle,
   User,
-  Star
+  Star,
+  Package
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import TripRequestCard from "./TripRequestCard";
 import DriverMessageDialog from "./DriverMessageDialog";
+import PassengerRatingDialog from "./PassengerRatingDialog";
 import { toast } from "sonner";
 
 export default function DriverDashboard() {
@@ -30,6 +32,7 @@ export default function DriverDashboard() {
   const [currentTrip, setCurrentTrip] = useState(null);
   const [tripRequests, setTripRequests] = useState([]);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [showRatingDialog, setShowRatingDialog] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch driver profile
@@ -97,12 +100,35 @@ export default function DriverDashboard() {
         status: "completed",
       });
       
-      toast.success("Trip completed! Earnings added.");
+      toast.success("Trip completed! Please rate the passenger.");
+      setShowRatingDialog(true);
+    } catch (error) {
+      toast.error("Failed to complete trip");
+    }
+  };
+
+  const handlePassengerRating = async ({ rating, remarks, foundItem, itemDescription }) => {
+    if (!currentTrip) return;
+    
+    try {
+      const updateData = {
+        passenger_rating: rating,
+        passenger_remarks: remarks,
+        found_item_reported: foundItem,
+        found_item_description: foundItem ? itemDescription : null,
+        found_item_reported_at: foundItem ? new Date().toISOString() : null,
+      };
+      
+      await base44.entities.Trip.update(currentTrip.id, updateData);
+      
+      toast.success("Rating submitted!" + (foundItem ? " Found item reported to dispatch." : ""));
+      setShowRatingDialog(false);
       setCurrentTrip(null);
       queryClient.invalidateQueries({ queryKey: ["pending-trips"] });
       queryClient.invalidateQueries({ queryKey: ["driver-profile"] });
     } catch (error) {
-      toast.error("Failed to complete trip");
+      toast.error("Failed to submit rating");
+      console.error(error);
     }
   };
 
@@ -296,7 +322,7 @@ export default function DriverDashboard() {
                     onClick={handleCompleteTrip}
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    Complete Trip
+                    Complete & Rate
                   </Button>
                 </div>
               </CardContent>
@@ -311,6 +337,15 @@ export default function DriverDashboard() {
         onOpenChange={setShowMessageDialog}
         passengerName={currentTrip?.passenger_name || "Passenger"}
         onSendMessage={handleSendMessage}
+      />
+
+      {/* Passenger Rating Dialog */}
+      <PassengerRatingDialog
+        open={showRatingDialog}
+        onOpenChange={setShowRatingDialog}
+        passengerName={currentTrip?.passenger_name || "Passenger"}
+        tripId={currentTrip?.id}
+        onSubmit={handlePassengerRating}
       />
 
       {/* Trip Requests */}

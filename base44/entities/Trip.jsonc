@@ -86,6 +86,28 @@
       "type": "string",
       "format": "date-time",
       "description": "When the last message was sent"
+    },
+    "passenger_rating": {
+      "type": "number",
+      "description": "Driver's rating for passenger (1-5)"
+    },
+    "passenger_remarks": {
+      "type": "string",
+      "description": "Driver's remarks about the passenger"
+    },
+    "found_item_reported": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether a found item was reported"
+    },
+    "found_item_description": {
+      "type": "string",
+      "description": "Description of the found item"
+    },
+    "found_item_reported_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the found item was reported"
     }
   },
   "required": [
