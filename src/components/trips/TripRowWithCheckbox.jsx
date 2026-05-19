@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { MapPin, Navigation, ChevronRight, User, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import QuickDispatchButton from "./QuickDispatchButton";
 
 const statusColors = {
   pending: "bg-chart-4/10 text-chart-4 border-chart-4/20",
@@ -80,6 +81,13 @@ export default function TripRowWithCheckbox({ trip, index = 0, isSelected, onTog
             </div>
           </div>
 
+          {/* Quick Dispatch Button (only for pending trips) */}
+          {trip.status === "pending" && (
+            <div onClick={(e) => e.stopPropagation()}>
+              <QuickDispatchButton trip={trip} />
+            </div>
+          )}
+          
           <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
         </div>
       </Card>

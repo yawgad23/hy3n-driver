@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { ArrowLeft, MapPin, Clock, DollarSign, Navigation, User, Car } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import TripRouteMap from "@/components/trips/TripRouteMap";
+import AutoDispatchPanel from "@/components/dispatch/AutoDispatchPanel";
 
 const statusStyles = {
   completed: "bg-accent/10 text-accent border-accent/20",
@@ -20,12 +21,19 @@ const statusStyles = {
 export default function TripDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: trip, isLoading } = useQuery({
     queryKey: ["trip", id],
     queryFn: () => base44.entities.Trip.get(id),
     enabled: !!id,
   });
+
+  const handleDriverAssigned = async (driver) => {
+    // Refresh trip data after driver assignment
+    await queryClient.invalidateQueries({ queryKey: ["trip", id] });
+    await queryClient.invalidateQueries({ queryKey: ["trips"] });
+  };
 
   if (isLoading || !trip) {
     return (
@@ -97,21 +105,41 @@ export default function TripDetails() {
         </Card>
       </motion.div>
 
+      {/* Auto-Dispatch Panel (only for pending trips) */}
+      {trip.status === "pending" && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
+          <AutoDispatchPanel trip={trip} onDriverAssigned={handleDriverAssigned} />
+        </motion.div>
+      )}
+
       {/* Driver & Passenger */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
         <Card className="p-5 space-y-4">
           <h2 className="font-heading font-semibold text-sm">Trip Info</h2>
-          {trip.driver_name && (
+          {trip.driver_name ? (
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                 <User className="w-4 h-4 text-primary" />
               </div>
               <div className="flex-1">
                 <p className="text-xs text-muted-foreground">Driver</p>
                 <p className="font-medium">{trip.driver_name}</p>
+                <Badge variant="outline" className="mt-1 text-xs">
+                  Assigned
+                </Badge>
               </div>
             </div>
-          )}
+          ) : trip.status === "pending" ? (
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <div className="w-9 h-9 rounded-lg bg-secondary/50 flex items-center justify-center">
+                <User className="w-4 h-4" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs">No driver assigned yet</p>
+                <p className="text-xs text-muted-foreground">Use auto-dispatch or manual assignment</p>
+              </div>
+            </div>
+          ) : null}
           {trip.passenger_name && (
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center">
