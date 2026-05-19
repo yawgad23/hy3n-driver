@@ -17,7 +17,8 @@ import {
   XCircle,
   User,
   Star,
-  Package
+  Package,
+  Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { base44 } from "@/api/base44Client";
@@ -25,6 +26,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import TripRequestCard from "./TripRequestCard";
 import DriverMessageDialog from "./DriverMessageDialog";
 import PassengerRatingDialog from "./PassengerRatingDialog";
+import SafetyMonitor from "./SafetyMonitor";
+import SafetyReportDialog from "./SafetyReportDialog";
 import { toast } from "sonner";
 
 export default function DriverDashboard() {
@@ -33,6 +36,8 @@ export default function DriverDashboard() {
   const [tripRequests, setTripRequests] = useState([]);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showRatingDialog, setShowRatingDialog] = useState(false);
+  const [showSafetyReport, setShowSafetyReport] = useState(false);
+  const [safetyData, setSafetyData] = useState(null);
   const queryClient = useQueryClient();
 
   // Fetch driver profile
@@ -123,11 +128,28 @@ export default function DriverDashboard() {
       
       toast.success("Rating submitted!" + (foundItem ? " Found item reported to dispatch." : ""));
       setShowRatingDialog(false);
+      setShowSafetyReport(true);
+    } catch (error) {
+      toast.error("Failed to submit rating");
+      console.error(error);
+    }
+  };
+
+  const handleSafetyReportSubmit = async () => {
+    if (!currentTrip || !safetyData) return;
+    
+    try {
+      await base44.entities.Trip.update(currentTrip.id, {
+        safety_data: safetyData,
+      });
+      
+      toast.success("Safety report saved!");
+      setShowSafetyReport(false);
       setCurrentTrip(null);
       queryClient.invalidateQueries({ queryKey: ["pending-trips"] });
       queryClient.invalidateQueries({ queryKey: ["driver-profile"] });
     } catch (error) {
-      toast.error("Failed to submit rating");
+      toast.error("Failed to save safety report");
       console.error(error);
     }
   };
@@ -240,6 +262,11 @@ export default function DriverDashboard() {
                 </div>
               </CardHeader>
               <CardContent className="p-5 space-y-4">
+                {/* Safety Monitor */}
+                <SafetyMonitor 
+                  isActive={true} 
+                  tripId={currentTrip.id}
+                />
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
@@ -346,6 +373,16 @@ export default function DriverDashboard() {
         passengerName={currentTrip?.passenger_name || "Passenger"}
         tripId={currentTrip?.id}
         onSubmit={handlePassengerRating}
+      />
+
+      {/* Safety Report Dialog */}
+      <SafetyReportDialog
+        open={showSafetyReport}
+        onOpenChange={setShowSafetyReport}
+        safetyData={safetyData}
+        tripDuration={currentTrip?.duration_min}
+        distance={currentTrip?.distance_km}
+        onSubmit={handleSafetyReportSubmit}
       />
 
       {/* Trip Requests */}

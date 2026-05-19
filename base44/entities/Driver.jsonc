@@ -67,42 +67,36 @@
       "type": "string",
       "format": "date-time",
       "description": "Last location update timestamp"
+    },
+    "safety_metrics": {
+      "type": "object",
+      "description": "Aggregate safety metrics",
+      "properties": {
+        "overall_safety_score": {
+          "type": "number",
+          "description": "Overall safety score (0-100)"
+        },
+        "total_hard_braking": {
+          "type": "number",
+          "default": 0,
+          "description": "Total hard braking events"
+        },
+        "total_rapid_acceleration": {
+          "type": "number",
+          "default": 0,
+          "description": "Total rapid acceleration events"
+        },
+        "total_sharp_turns": {
+          "type": "number",
+          "default": 0,
+          "description": "Total sharp turns"
+        }
+      }
     }
   },
   "required": [
     "full_name",
     "phone",
     "status"
-  ],
-  "rls": {
-    "create": {
-      "user_condition": {
-        "role": "admin"
-      }
-    },
-    "read": {
-      "user_condition": {
-        "email": {
-          "$exists": true
-        }
-      }
-    },
-    "update": {
-      "$or": [
-        {
-          "created_by": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
-    "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
-    }
-  }
+  ]
 }

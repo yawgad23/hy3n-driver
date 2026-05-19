@@ -108,6 +108,39 @@
       "type": "string",
       "format": "date-time",
       "description": "When the found item was reported"
+    },
+    "safety_data": {
+      "type": "object",
+      "description": "Safety monitoring data for the trip",
+      "properties": {
+        "average_speed": {
+          "type": "number",
+          "description": "Average speed during trip (km/h)"
+        },
+        "max_speed": {
+          "type": "number",
+          "description": "Maximum speed recorded (km/h)"
+        },
+        "hard_braking_events": {
+          "type": "number",
+          "default": 0,
+          "description": "Number of hard braking events"
+        },
+        "rapid_acceleration_events": {
+          "type": "number",
+          "default": 0,
+          "description": "Number of rapid acceleration events"
+        },
+        "sharp_turns": {
+          "type": "number",
+          "default": 0,
+          "description": "Number of sharp turns detected"
+        },
+        "safety_score": {
+          "type": "number",
+          "description": "Overall safety score (0-100)"
+        }
+      }
     }
   },
   "required": [
