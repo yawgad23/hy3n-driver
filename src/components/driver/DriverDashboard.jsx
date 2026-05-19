@@ -22,12 +22,14 @@ import { cn } from "@/lib/utils";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import TripRequestCard from "./TripRequestCard";
+import DriverMessageDialog from "./DriverMessageDialog";
 import { toast } from "sonner";
 
 export default function DriverDashboard() {
   const [isOnline, setIsOnline] = useState(false);
   const [currentTrip, setCurrentTrip] = useState(null);
   const [tripRequests, setTripRequests] = useState([]);
+  const [showMessageDialog, setShowMessageDialog] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch driver profile
@@ -132,6 +134,16 @@ export default function DriverDashboard() {
     if (!currentTrip) return;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${currentTrip.dropoff_lat || 40.7128},${currentTrip.dropoff_lng || -74.0060}`;
     window.open(url, "_blank");
+  };
+
+  const handleSendMessage = async (message) => {
+    if (!currentTrip) return;
+    // Store message in Trip entity or send via backend function
+    await base44.entities.Trip.update(currentTrip.id, {
+      last_message: message,
+      last_message_from: "driver",
+      last_message_time: new Date().toISOString()
+    });
   };
 
   if (!driver) {
@@ -248,7 +260,11 @@ export default function DriverDashboard() {
                   <Button variant="outline" size="sm">
                     <Phone className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowMessageDialog(true)}
+                  >
                     <MessageSquare className="w-4 h-4" />
                   </Button>
                 </div>
@@ -275,6 +291,14 @@ export default function DriverDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Message Dialog */}
+      <DriverMessageDialog
+        open={showMessageDialog}
+        onOpenChange={setShowMessageDialog}
+        passengerName={currentTrip?.passenger_name || "Passenger"}
+        onSendMessage={handleSendMessage}
+      />
 
       {/* Trip Requests */}
       <AnimatePresence>

@@ -1,18 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { LogIn, Mail, Lock, Loader2, Fingerprint } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Load saved credentials if remember me was enabled
+    const savedEmail = localStorage.getItem("driver_remember_email");
+    const savedPassword = localStorage.getItem("driver_remember_password");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+      if (savedPassword) {
+        setPassword(savedPassword);
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,9 +35,43 @@ export default function Login() {
     setLoading(true);
     try {
       await base44.auth.loginViaEmailPassword(email, password);
+      
+      // Save credentials if remember me is enabled
+      if (rememberMe) {
+        localStorage.setItem("driver_remember_email", email);
+        if (password) {
+          localStorage.setItem("driver_remember_password", password);
+        }
+      } else {
+        localStorage.removeItem("driver_remember_email");
+        localStorage.removeItem("driver_remember_password");
+      }
+      
       window.location.href = "/";
     } catch (err) {
       setError(err.message || "Invalid email or password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    const savedEmail = localStorage.getItem("driver_remember_email");
+    const savedPassword = localStorage.getItem("driver_remember_password");
+    
+    if (!savedEmail || !savedPassword) {
+      setError("No saved credentials found. Please login normally first.");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      await base44.auth.loginViaEmailPassword(savedEmail, savedPassword);
+      window.location.href = "/";
+    } catch (err) {
+      setError("Biometric login failed. Please login normally.");
+      localStorage.removeItem("driver_remember_email");
+      localStorage.removeItem("driver_remember_password");
     } finally {
       setLoading(false);
     }
@@ -81,6 +130,19 @@ export default function Login() {
         </div>
       )}
 
+      {/* Biometric Login Button */}
+      {(localStorage.getItem("driver_remember_email") || localStorage.getItem("driver_remember_password")) && (
+        <Button
+          variant="outline"
+          className="w-full h-12 text-sm font-medium mb-4 gap-2"
+          onClick={handleBiometricLogin}
+          disabled={loading}
+        >
+          <Fingerprint className="w-5 h-5" />
+          Quick Login with Biometric
+        </Button>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
@@ -120,6 +182,24 @@ export default function Login() {
             />
           </div>
         </div>
+        
+        {/* Remember Me */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Switch
+              id="remember-me"
+              checked={rememberMe}
+              onCheckedChange={setRememberMe}
+            />
+            <Label htmlFor="remember-me" className="text-sm cursor-pointer">
+              Remember me
+            </Label>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Saves login for quick access
+          </p>
+        </div>
+        
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
           {loading ? (
             <>
