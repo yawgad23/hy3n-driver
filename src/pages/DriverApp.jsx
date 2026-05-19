@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import DriverDashboard from "@/components/driver/DriverDashboard";
 import AddDriverProfileDialog from "@/components/driver/AddDriverProfileDialog";
+import SplashScreen from "@/components/driver/SplashScreen";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +10,17 @@ import { Car, LogIn, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function DriverApp() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    // Hide splash after 2.5 seconds
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const { data: driver, isLoading } = useQuery({
     queryKey: ["driver-profile"],
     queryFn: async () => {
@@ -15,6 +28,10 @@ export default function DriverApp() {
       return drivers[0] || null;
     },
   });
+
+  if (showSplash) {
+    return <SplashScreen />;
+  }
 
   if (isLoading) {
     return (
