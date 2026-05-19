@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, MapPin, Clock, DollarSign, Navigation, User, Car } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, DollarSign, Navigation, User, Car, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -9,7 +9,9 @@ import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import TripRouteMap from "@/components/trips/TripRouteMap";
+import LiveTripMap from "@/components/trips/LiveTripMap";
 import AutoDispatchPanel from "@/components/dispatch/AutoDispatchPanel";
+import { useSimulatedDriverTracking } from "@/hooks/useSimulatedDriverTracking";
 
 const statusStyles = {
   completed: "bg-accent/10 text-accent border-accent/20",
@@ -28,6 +30,22 @@ export default function TripDetails() {
     queryFn: () => base44.entities.Trip.get(id),
     enabled: !!id,
   });
+
+  // Get driver data for tracking
+  const { data: drivers = [] } = useQuery({
+    queryKey: ["drivers"],
+    queryFn: () => base44.entities.Driver.list(),
+    enabled: !!trip?.driver_id,
+  });
+
+  const driver = drivers.find(d => d.id === trip?.driver_id);
+  const activeDriversForTracking = driver && (trip?.status === "in_progress" || trip?.status === "pending") 
+    ? [driver] 
+    : [];
+  const { positions, movementStatus } = useSimulatedDriverTracking(activeDriversForTracking);
+
+  const driverPosition = driver ? positions[driver.id] : null;
+  const driverMovementStatus = driver ? movementStatus[driver.id] : null;
 
   const handleDriverAssigned = async (driver) => {
     // Refresh trip data after driver assignment
@@ -71,16 +89,24 @@ export default function TripDetails() {
             )}
           </div>
 
-          {/* Route */}
+          {/* Route with Live Tracking */}
           <div className="space-y-4">
-            <TripRouteMap
-              pickupLat={trip.pickup_lat}
-              pickupLng={trip.pickup_lng}
-              dropoffLat={trip.dropoff_lat}
-              dropoffLng={trip.dropoff_lng}
-              pickupLocation={trip.pickup_location}
-              dropoffLocation={trip.dropoff_location}
-            />
+            {trip.status === "in_progress" && driver ? (
+              <LiveTripMap 
+                trip={trip} 
+                driverPosition={driverPosition}
+                movementStatus={driverMovementStatus}
+              />
+            ) : (
+              <TripRouteMap
+                pickupLat={trip.pickup_lat}
+                pickupLng={trip.pickup_lng}
+                dropoffLat={trip.dropoff_lat}
+                dropoffLng={trip.dropoff_lng}
+                pickupLocation={trip.pickup_location}
+                dropoffLocation={trip.dropoff_location}
+              />
+            )}
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -124,9 +150,17 @@ export default function TripDetails() {
               <div className="flex-1">
                 <p className="text-xs text-muted-foreground">Driver</p>
                 <p className="font-medium">{trip.driver_name}</p>
-                <Badge variant="outline" className="mt-1 text-xs">
-                  Assigned
-                </Badge>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="text-xs">
+                    Assigned
+                  </Badge>
+                  {trip.status === "in_progress" && driverMovementStatus && (
+                    <Badge variant="outline" className="text-xs gap-1">
+                      <Radio className={cn("w-3 h-3", driverMovementStatus === "on_trip" ? "animate-pulse text-primary" : "text-muted-foreground")} />
+                      {driverMovementStatus === "on_trip" ? "Moving" : "Stationary"}
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
           ) : trip.status === "pending" ? (
