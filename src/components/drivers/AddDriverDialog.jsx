@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Plus, MapPin } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -17,6 +17,18 @@ const initialForm = {
   vehicle_model: "",
   vehicle_plate: "",
   status: "active",
+  latitude: "",
+  longitude: "",
+};
+
+// Default NYC coordinates with slight variations
+const getRandomCoords = () => {
+  const baseLat = 40.7128;
+  const baseLng = -74.0060;
+  return {
+    latitude: (baseLat + (Math.random() - 0.5) * 0.1).toFixed(6),
+    longitude: (baseLng + (Math.random() - 0.5) * 0.1).toFixed(6),
+  };
 };
 
 export default function AddDriverDialog({ onDriverAdded }) {
@@ -29,16 +41,32 @@ export default function AddDriverDialog({ onDriverAdded }) {
     setForm(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleRandomizeLocation = () => {
+    const coords = getRandomCoords();
+    setForm(prev => ({ ...prev, latitude: coords.latitude, longitude: coords.longitude }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
+      const coords = form.latitude && form.longitude ? {
+        latitude: Number(form.latitude),
+        longitude: Number(form.longitude),
+        last_location_update: new Date().toISOString(),
+      } : getRandomCoords();
+
       // Optimistic update - close dialog immediately
       setOpen(false);
       setForm(initialForm);
       
       // Create in background
-      const newDriver = await base44.entities.Driver.create(form);
+      const newDriver = await base44.entities.Driver.create({
+        ...form,
+        ...coords,
+        latitude: undefined,
+        longitude: undefined,
+      });
       
       // Navigate to new driver details
       navigate(`/drivers/${newDriver.id}`);
@@ -100,6 +128,32 @@ export default function AddDriverDialog({ onDriverAdded }) {
             <div>
               <Label htmlFor="vehicle_plate">License Plate</Label>
               <Input id="vehicle_plate" value={form.vehicle_plate} onChange={(e) => handleChange("vehicle_plate", e.target.value)} />
+            </div>
+            <div className="col-span-2">
+              <div className="flex items-center justify-between mb-2">
+                <Label>Location (for map)</Label>
+                <Button type="button" variant="ghost" size="sm" onClick={handleRandomizeLocation} className="h-7 text-xs gap-1">
+                  <MapPin className="w-3 h-3" />
+                  Randomize
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Input 
+                  placeholder="Latitude" 
+                  type="number" 
+                  step="0.000001"
+                  value={form.latitude} 
+                  onChange={(e) => handleChange("latitude", e.target.value)} 
+                />
+                <Input 
+                  placeholder="Longitude" 
+                  type="number" 
+                  step="0.000001"
+                  value={form.longitude} 
+                  onChange={(e) => handleChange("longitude", e.target.value)} 
+                />
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">Leave empty for auto-assignment</p>
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-2">

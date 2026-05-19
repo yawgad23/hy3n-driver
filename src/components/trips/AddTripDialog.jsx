@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Plus, MapPin } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -19,6 +19,22 @@ const initialForm = {
   duration_min: "",
   status: "pending",
   trip_date: new Date().toISOString().slice(0, 16),
+  pickup_lat: "",
+  pickup_lng: "",
+  dropoff_lat: "",
+  dropoff_lng: "",
+};
+
+// Default NYC coordinates with slight variations
+const getRandomCoords = (offset = 0.05) => {
+  const baseLat = 40.7128;
+  const baseLng = -74.0060;
+  return {
+    pickup_lat: (baseLat + (Math.random() - 0.5) * offset).toFixed(6),
+    pickup_lng: (baseLng + (Math.random() - 0.5) * offset).toFixed(6),
+    dropoff_lat: (baseLat + (Math.random() - 0.5) * offset).toFixed(6),
+    dropoff_lng: (baseLng + (Math.random() - 0.5) * offset).toFixed(6),
+  };
 };
 
 export default function AddTripDialog({ onTripAdded }) {
@@ -31,10 +47,28 @@ export default function AddTripDialog({ onTripAdded }) {
     setForm(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleRandomizeLocation = () => {
+    const coords = getRandomCoords();
+    setForm(prev => ({ 
+      ...prev, 
+      pickup_lat: coords.pickup_lat, 
+      pickup_lng: coords.pickup_lng,
+      dropoff_lat: coords.dropoff_lat,
+      dropoff_lng: coords.dropoff_lng,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
+      const coords = form.pickup_lat && form.pickup_lng && form.dropoff_lat && form.dropoff_lng ? {
+        pickup_lat: Number(form.pickup_lat),
+        pickup_lng: Number(form.pickup_lng),
+        dropoff_lat: Number(form.dropoff_lat),
+        dropoff_lng: Number(form.dropoff_lng),
+      } : getRandomCoords();
+
       // Optimistic update - close dialog immediately
       setOpen(false);
       setForm(initialForm);
@@ -42,9 +76,14 @@ export default function AddTripDialog({ onTripAdded }) {
       // Create in background
       const newTrip = await base44.entities.Trip.create({
         ...form,
+        ...coords,
         fare: form.fare ? Number(form.fare) : undefined,
         distance_km: form.distance_km ? Number(form.distance_km) : undefined,
         duration_min: form.duration_min ? Number(form.duration_min) : undefined,
+        pickup_lat: undefined,
+        pickup_lng: undefined,
+        dropoff_lat: undefined,
+        dropoff_lng: undefined,
       });
       
       // Navigate to new trip details
@@ -112,6 +151,46 @@ export default function AddTripDialog({ onTripAdded }) {
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="col-span-2">
+              <div className="flex items-center justify-between mb-2">
+                <Label>Route Coordinates (for map)</Label>
+                <Button type="button" variant="ghost" size="sm" onClick={handleRandomizeLocation} className="h-7 text-xs gap-1">
+                  <MapPin className="w-3 h-3" />
+                  Randomize
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <Input 
+                  placeholder="Pickup Lat" 
+                  type="number" 
+                  step="0.000001"
+                  value={form.pickup_lat} 
+                  onChange={(e) => handleChange("pickup_lat", e.target.value)} 
+                />
+                <Input 
+                  placeholder="Pickup Lng" 
+                  type="number" 
+                  step="0.000001"
+                  value={form.pickup_lng} 
+                  onChange={(e) => handleChange("pickup_lng", e.target.value)} 
+                />
+                <Input 
+                  placeholder="Dropoff Lat" 
+                  type="number" 
+                  step="0.000001"
+                  value={form.dropoff_lat} 
+                  onChange={(e) => handleChange("dropoff_lat", e.target.value)} 
+                />
+                <Input 
+                  placeholder="Dropoff Lng" 
+                  type="number" 
+                  step="0.000001"
+                  value={form.dropoff_lng} 
+                  onChange={(e) => handleChange("dropoff_lng", e.target.value)} 
+                />
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">Leave empty for auto-assignment</p>
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-2">
