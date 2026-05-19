@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { Users, MapPin, Car, Navigation } from "lucide-react";
+import { Users, MapPin, Car, Navigation, Radio } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FleetMap from "../components/map/FleetMap";
 import { cn } from "@/lib/utils";
+import { useSimulatedDriverTracking } from "@/hooks/useSimulatedDriverTracking";
 
 const statusColors = {
   active: "bg-accent/10 text-accent border-accent/20",
@@ -22,6 +23,7 @@ const statusColors = {
 
 export default function MapDashboard() {
   const [filter, setFilter] = useState("all");
+  const [liveTrackingEnabled, setLiveTrackingEnabled] = useState(true);
 
   const { data: drivers = [], isLoading: driversLoading } = useQuery({
     queryKey: ["drivers"],
@@ -32,6 +34,10 @@ export default function MapDashboard() {
     queryKey: ["trips"],
     queryFn: () => base44.entities.Trip.list("-created_date"),
   });
+
+  // Enable real-time tracking for drivers on trips
+  const driversOnTrip = drivers.filter(d => d.status === "on_trip");
+  useSimulatedDriverTracking(liveTrackingEnabled ? driversOnTrip : []);
 
   const activeDrivers = drivers.filter(d => d.status === "active" || d.status === "on_trip");
   const pendingTrips = trips.filter(t => t.status === "pending" || t.status === "in_progress");
@@ -66,6 +72,15 @@ export default function MapDashboard() {
             <Navigation className="w-3.5 h-3.5" />
             {pendingTrips.length} in progress
           </Badge>
+          <Button
+            variant={liveTrackingEnabled ? "default" : "outline"}
+            size="sm"
+            onClick={() => setLiveTrackingEnabled(!liveTrackingEnabled)}
+            className="gap-1.5"
+          >
+            <Radio className={`w-3.5 h-3.5 ${liveTrackingEnabled && "animate-pulse"}`} />
+            {liveTrackingEnabled ? "Live" : "Paused"}
+          </Button>
         </div>
       </motion.div>
 
