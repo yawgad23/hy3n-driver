@@ -37,17 +37,17 @@ export default function MapDashboard() {
     queryFn: () => base44.entities.Trip.list("-created_date"),
   });
 
-  const activeDrivers = drivers.filter(d => d.status === "active" || d.status === "on_trip");
+  // Enable real-time tracking for all active drivers
+  const allActiveDrivers = drivers.filter(d => d.status === "active" || d.status === "on_trip");
   const pendingTrips = trips.filter(t => t.status === "pending" || t.status === "in_progress");
   const completedTrips = trips.filter(t => t.status === "completed");
 
-  // Enable real-time tracking for all active drivers
-  const { positions, movementStatus } = useSimulatedDriverTracking(liveTrackingEnabled ? activeDrivers : []);
+  const { positions, movementStatus } = useSimulatedDriverTracking(liveTrackingEnabled ? allActiveDrivers : []);
 
   const filteredDrivers = filter === "all" 
     ? drivers 
     : filter === "active" 
-      ? activeDrivers 
+      ? allActiveDrivers 
       : drivers.filter(d => d.status === filter);
 
   const filteredTrips = filter === "all"
@@ -67,7 +67,7 @@ export default function MapDashboard() {
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="gap-1.5">
             <Car className="w-3.5 h-3.5" />
-            {activeDrivers.length} active
+            {allActiveDrivers.length} active
           </Badge>
           <Badge variant="outline" className="gap-1.5">
             <Navigation className="w-3.5 h-3.5" />
@@ -127,7 +127,7 @@ export default function MapDashboard() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Active Now</p>
-              <p className="font-heading font-bold text-lg">{activeDrivers.length}</p>
+              <p className="font-heading font-bold text-lg">{allActiveDrivers.length}</p>
             </div>
           </div>
         </div>
@@ -172,7 +172,7 @@ export default function MapDashboard() {
           animate={{ opacity: 1, x: 0 }} 
           transition={{ delay: 0.35 }}
         >
-          <VehicleStatusPanel drivers={activeDrivers} movementStatus={movementStatus} />
+          <VehicleStatusPanel drivers={allActiveDrivers} movementStatus={movementStatus} />
         </motion.div>
 
         {/* Active Drivers List */}
@@ -189,14 +189,14 @@ export default function MapDashboard() {
                 <div key={i} className="h-16 rounded-xl bg-muted animate-pulse" />
               ))}
             </div>
-          ) : activeDrivers.length === 0 ? (
+          ) : allActiveDrivers.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Car className="w-8 h-8 mx-auto mb-3 opacity-40" />
               <p className="text-sm">No active drivers</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {activeDrivers.slice(0, 5).map((driver) => (
+              {allActiveDrivers.slice(0, 5).map((driver) => (
                 <div key={driver.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <Car className="w-4 h-4 text-primary" />
