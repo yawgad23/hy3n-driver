@@ -3,8 +3,11 @@ import Sidebar from "./Sidebar";
 import MobileNav from "./MobileNav";
 import { Car } from "lucide-react";
 import { Link } from "react-router-dom";
+import useFleetNotifications from "@/hooks/useFleetNotifications";
 
 export default function AppLayout() {
+  // Initialize real-time notifications
+  useFleetNotifications();
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
