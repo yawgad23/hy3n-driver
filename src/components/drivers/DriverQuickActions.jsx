@@ -7,14 +7,16 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Phone, MessageCircle, MapPin, Calendar, UserX, CheckCircle, Edit } from "lucide-react";
+import { MoreVertical, Phone, MessageCircle, MapPin, Calendar, UserX, CheckCircle, Clock } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 export default function DriverQuickActions({ driver, onStatusChange }) {
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const handleCall = () => {
     if (driver.phone) {
@@ -38,7 +40,7 @@ export default function DriverQuickActions({ driver, onStatusChange }) {
   };
 
   const handleScheduleShift = () => {
-    toast.info("Opening schedule...");
+    navigate("/shifts");
   };
 
   const handleSuspend = async () => {
@@ -111,8 +113,8 @@ export default function DriverQuickActions({ driver, onStatusChange }) {
           Assign Trip
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleScheduleShift}>
-          <Calendar className="w-4 h-4 mr-2" />
-          Schedule Shift
+          <Clock className="w-4 h-4 mr-2" />
+          Assign Shift
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {getStatusAction()}

@@ -1,0 +1,58 @@
+{
+  "name": "Shift",
+  "type": "object",
+  "properties": {
+    "driver_id": {
+      "type": "string",
+      "description": "Reference to the assigned driver"
+    },
+    "driver_name": {
+      "type": "string",
+      "description": "Driver name for quick display"
+    },
+    "shift_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the shift"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "Shift start time (HH:MM format)"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "Shift end time (HH:MM format)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "active",
+        "completed",
+        "cancelled"
+      ],
+      "default": "scheduled",
+      "description": "Current shift status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or instructions"
+    },
+    "actual_start_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Actual clock-in time"
+    },
+    "actual_end_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Actual clock-out time"
+    }
+  },
+  "required": [
+    "driver_name",
+    "shift_date",
+    "start_time",
+    "end_time"
+  ]
+}

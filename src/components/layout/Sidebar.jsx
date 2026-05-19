@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, MapPin, Car, Map, BarChart3, Calendar } from "lucide-react";
+import { LayoutDashboard, Users, MapPin, Car, Map, BarChart3, Calendar, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -8,6 +8,7 @@ const navItems = [
   { label: "Trips", path: "/trips", icon: MapPin },
   { label: "Map", path: "/map", icon: Map },
   { label: "Schedule", path: "/schedule", icon: Calendar },
+  { label: "Shifts", path: "/shifts", icon: Clock },
   { label: "Analytics", path: "/analytics", icon: BarChart3 },
 ];
 
