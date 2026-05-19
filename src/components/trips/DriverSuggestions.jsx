@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Car, Navigation, Clock, MapPin, Star, TrendingUp } from "lucide-react";
+import { Car, Navigation, Clock, MapPin, Star, TrendingUp, Award, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -146,8 +146,24 @@ export default function DriverSuggestions({ pickupLat, pickupLng, onDriverSelect
                       </div>
                     </div>
 
+                    {/* Dispatch Score */}
+                    {driver.dispatch_score && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-primary to-accent transition-all"
+                            style={{ width: `${driver.dispatch_score}%` }}
+                          />
+                        </div>
+                        <Badge className="bg-primary text-primary-foreground text-xs min-w-[3rem]">
+                          <Zap className="w-3 h-3 mr-0.5" />
+                          {driver.dispatch_score}
+                        </Badge>
+                      </div>
+                    )}
+
                     {/* Stats Row */}
-                    <div className="flex items-center gap-4 text-xs">
+                    <div className="flex items-center gap-3 text-xs">
                       <div className="flex items-center gap-1">
                         <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                         <span className="font-medium">{driver.rating?.toFixed(1) || "N/A"}</span>
@@ -156,14 +172,16 @@ export default function DriverSuggestions({ pickupLat, pickupLng, onDriverSelect
                         <TrendingUp className="w-3 h-3 text-muted-foreground" />
                         <span>{driver.total_trips || 0} trips</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-muted-foreground" />
-                        <span className="font-mono">{driver.vehicle_plate || "N/A"}</span>
-                      </div>
+                      {driver.recent_trips_24h !== undefined && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-muted-foreground" />
+                          <span>{driver.recent_trips_24h} today</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Status Badge */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mt-2">
                       <Badge 
                         variant="outline" 
                         className={cn("text-xs", statusColors[driver.status])}
@@ -172,8 +190,8 @@ export default function DriverSuggestions({ pickupLat, pickupLng, onDriverSelect
                       </Badge>
                       {index === 0 && (
                         <Badge className="bg-accent text-accent-foreground text-xs">
-                          <Clock className="w-3 h-3 mr-1" />
-                          Nearest
+                          <Award className="w-3 h-3 mr-1" />
+                          Best Match
                         </Badge>
                       )}
                     </div>

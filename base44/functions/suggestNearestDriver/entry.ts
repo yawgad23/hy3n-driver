@@ -19,6 +19,25 @@ function toRad(degrees) {
   return degrees * Math.PI / 180;
 }
 
+// Calculate driver score based on multiple factors
+function calculateDriverScore(driver, distance, recentTrips) {
+  const baseScore = 100;
+  
+  // Distance penalty (closer = better, max -30 points)
+  const distancePenalty = Math.min(distance * 3, 30);
+  
+  // Recent trip penalty (prevent overloading, max -20 points)
+  const tripPenalty = Math.min(recentTrips * 4, 20);
+  
+  // Rating bonus (max +15 points)
+  const ratingBonus = (driver.rating || 0) * 3;
+  
+  // Status bonus (on_trip drivers already en route get slight penalty)
+  const statusBonus = driver.status === "active" ? 5 : 0;
+  
+  return Math.max(0, baseScore - distancePenalty - tripPenalty + ratingBonus + statusBonus);
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -28,7 +47,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { pickup_lat, pickup_lng, trip_id } = await req.json();
+    const { pickup_lat, pickup_lng, trip_id, vehicle_capacity } = await req.json();
 
     if (!pickup_lat || !pickup_lng) {
       return Response.json({ 
@@ -46,8 +65,23 @@ Deno.serve(async (req) => {
       d.latitude && d.longitude && d.status !== "suspended"
     );
 
-    // Calculate distance for each driver
-    const driversWithDistance = driversWithLocation.map(driver => {
+    // Get recent trips (last 24 hours) for trip history analysis
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const recentTrips = await base44.entities.Trip.filter({
+      trip_date: { $gte: twentyFourHoursAgo },
+      status: ["completed", "in_progress"]
+    });
+
+    // Count recent trips per driver
+    const driverTripCounts = {};
+    recentTrips.forEach(trip => {
+      if (trip.driver_id) {
+        driverTripCounts[trip.driver_id] = (driverTripCounts[trip.driver_id] || 0) + 1;
+      }
+    });
+
+    // Calculate comprehensive scores for each driver
+    const driversWithScores = driversWithLocation.map(driver => {
       const distance = calculateDistance(
         pickup_lat, 
         pickup_lng, 
@@ -55,25 +89,37 @@ Deno.serve(async (req) => {
         driver.longitude
       );
       
+      const recentTripCount = driverTripCounts[driver.id] || 0;
+      const score = calculateDriverScore(driver, distance, recentTripCount);
+      
       return {
         ...driver,
         distance_km: parseFloat(distance.toFixed(2)),
         eta_minutes: Math.round(distance * 2.5), // Estimate: 2.5 min per km
+        recent_trips_24h: recentTripCount,
+        dispatch_score: Math.round(score),
       };
     });
 
-    // Sort by distance (nearest first)
-    const sortedDrivers = driversWithDistance.sort((a, b) => 
-      a.distance_km - b.distance_km
-    );
+    // Sort by dispatch score (best match first), then by distance
+    const sortedDrivers = driversWithScores.sort((a, b) => {
+      if (b.dispatch_score !== a.dispatch_score) {
+        return b.dispatch_score - a.dispatch_score;
+      }
+      return a.distance_km - b.distance_km;
+    });
 
-    // Get top 5 nearest drivers
-    const nearestDrivers = sortedDrivers.slice(0, 5);
+    // Get top 5 best matches
+    const bestMatches = sortedDrivers.slice(0, 5);
 
     return Response.json({ 
-      suggestions: nearestDrivers,
+      suggestions: bestMatches,
       total_available: driversWithLocation.length,
-      pickup_location: { lat: pickup_lat, lng: pickup_lng }
+      pickup_location: { lat: pickup_lat, lng: pickup_lng },
+      analysis: {
+        factors: ["distance", "recent_trips", "driver_rating", "availability"],
+        recent_trips_analyzed: recentTrips.length,
+      }
     });
 
   } catch (error) {

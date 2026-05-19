@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FleetMap from "../components/map/FleetMap";
+import DispatchAnalytics from "../components/dispatch/DispatchAnalytics";
 import { cn } from "@/lib/utils";
 import { useSimulatedDriverTracking } from "@/hooks/useSimulatedDriverTracking";
 
@@ -154,13 +155,22 @@ export default function MapDashboard() {
         </div>
       </motion.div>
 
+      {/* Dispatch Analytics */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        transition={{ delay: 0.3 }}
+      >
+        <DispatchAnalytics />
+      </motion.div>
+
       {/* Lists */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Active Drivers */}
         <motion.div 
           initial={{ opacity: 0, x: -20 }} 
           animate={{ opacity: 1, x: 0 }} 
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.35 }}
           className="bg-card rounded-2xl border border-border p-5"
         >
           <h2 className="font-heading font-semibold text-base mb-4">Active Drivers</h2>
@@ -199,7 +209,7 @@ export default function MapDashboard() {
         <motion.div 
           initial={{ opacity: 0, x: 20 }} 
           animate={{ opacity: 1, x: 0 }} 
-          transition={{ delay: 0.35 }}
+          transition={{ delay: 0.4 }}
           className="bg-card rounded-2xl border border-border p-5"
         >
           <h2 className="font-heading font-semibold text-base mb-4">Active Trips</h2>
