@@ -10,6 +10,18 @@
       "type": "string",
       "description": "Driver name for quick display"
     },
+    "driver_phone": {
+      "type": "string",
+      "description": "Driver phone number for calls"
+    },
+    "passenger_name": {
+      "type": "string",
+      "description": "Passenger name"
+    },
+    "passenger_phone": {
+      "type": "string",
+      "description": "Passenger phone number for calls"
+    },
     "pickup_location": {
       "type": "string",
       "description": "Pickup address"
@@ -57,14 +69,23 @@
       "type": "number",
       "description": "Trip duration in minutes"
     },
-    "passenger_name": {
-      "type": "string",
-      "description": "Passenger name"
-    },
     "trip_date": {
       "type": "string",
       "format": "date-time",
       "description": "When the trip started"
+    },
+    "last_message": {
+      "type": "string",
+      "description": "Last message sent"
+    },
+    "last_message_from": {
+      "type": "string",
+      "description": "Who sent the last message (driver/passenger)"
+    },
+    "last_message_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the last message was sent"
     }
   },
   "required": [
@@ -72,36 +93,5 @@
     "pickup_location",
     "dropoff_location",
     "status"
-  ],
-  "rls": {
-    "create": {
-      "user_condition": {
-        "role": "admin"
-      }
-    },
-    "read": {
-      "user_condition": {
-        "email": {
-          "$exists": true
-        }
-      }
-    },
-    "update": {
-      "$or": [
-        {
-          "created_by": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
-    "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
-    }
-  }
+  ]
 }

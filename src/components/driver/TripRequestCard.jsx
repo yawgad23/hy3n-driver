@@ -71,8 +71,12 @@ export default function TripRequestCard({ trip, onAccept, onDecline }) {
   };
 
   const handleCallPassenger = () => {
-    // In a real app, this would use the phone number
-    toast.info("Calling passenger...");
+    const phoneNumber = trip.passenger_phone;
+    if (phoneNumber) {
+      window.location.href = `tel:${phoneNumber}`;
+    } else {
+      toast.error("No phone number available");
+    }
   };
 
   const handleMessagePassenger = () => {

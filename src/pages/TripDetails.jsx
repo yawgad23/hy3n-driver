@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, MapPin, Clock, DollarSign, Navigation, User, Car, Radio } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, DollarSign, Navigation, User, Car, Radio, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -162,6 +162,15 @@ export default function TripDetails() {
                   )}
                 </div>
               </div>
+              {trip.driver_phone && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.location.href = `tel:${trip.driver_phone}`}
+                >
+                  <Phone className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           ) : trip.status === "pending" ? (
             <div className="flex items-center gap-3 text-muted-foreground">
@@ -183,6 +192,15 @@ export default function TripDetails() {
                 <p className="text-xs text-muted-foreground">Passenger</p>
                 <p className="font-medium">{trip.passenger_name}</p>
               </div>
+              {trip.passenger_phone && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.location.href = `tel:${trip.passenger_phone}`}
+                >
+                  <Phone className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           )}
         </Card>

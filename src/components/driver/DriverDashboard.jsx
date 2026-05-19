@@ -146,6 +146,15 @@ export default function DriverDashboard() {
     });
   };
 
+  const handleCallPassenger = () => {
+    const phoneNumber = currentTrip?.passenger_phone;
+    if (phoneNumber) {
+      window.location.href = `tel:${phoneNumber}`;
+    } else {
+      toast.error("No phone number available");
+    }
+  };
+
   if (!driver) {
     return (
       <Card>
@@ -257,7 +266,11 @@ export default function DriverDashboard() {
                       </div>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleCallPassenger}
+                  >
                     <Phone className="w-4 h-4" />
                   </Button>
                   <Button 
