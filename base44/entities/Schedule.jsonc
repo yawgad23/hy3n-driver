@@ -1,0 +1,65 @@
+{
+  "name": "Schedule",
+  "type": "object",
+  "properties": {
+    "driver_id": {
+      "type": "string",
+      "description": "Reference to the assigned driver"
+    },
+    "driver_name": {
+      "type": "string",
+      "description": "Driver name for quick display"
+    },
+    "trip_id": {
+      "type": "string",
+      "description": "Reference to the trip (if linked)"
+    },
+    "title": {
+      "type": "string",
+      "description": "Schedule assignment title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Additional details"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Scheduled date and time"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Expected end date and time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "confirmed",
+        "in_progress",
+        "completed",
+        "cancelled"
+      ],
+      "default": "scheduled",
+      "description": "Assignment status"
+    },
+    "pickup_location": {
+      "type": "string",
+      "description": "Pickup address"
+    },
+    "dropoff_location": {
+      "type": "string",
+      "description": "Dropoff address"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Driver or dispatcher notes"
+    }
+  },
+  "required": [
+    "driver_name",
+    "scheduled_date",
+    "status"
+  ]
+}

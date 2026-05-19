@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, MapPin, Map, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Users, MapPin, Map, BarChart3, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTabState } from "@/lib/TabStateContext";
 
@@ -8,6 +8,7 @@ const navItems = [
   { label: "Drivers", path: "/drivers", icon: Users, tab: "drivers" },
   { label: "Trips", path: "/trips", icon: MapPin, tab: "trips" },
   { label: "Map", path: "/map", icon: Map, tab: "map" },
+  { label: "Schedule", path: "/schedule", icon: Calendar, tab: "schedule" },
   { label: "Analytics", path: "/analytics", icon: BarChart3, tab: "analytics" },
 ];
 
