@@ -48,6 +48,12 @@ export default function Login() {
               Become a driver
             </Link>
           </div>
+          <div className="mt-3">
+            Forgot password?{" "}
+            <Link to="/forgot-password" className="text-primary font-medium hover:underline">
+              Reset it
+            </Link>
+          </div>
         </>
       }
     >
