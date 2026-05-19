@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 
-export function useSimulatedDriverTracking(enabledDrivers = []) {
+export function useSimulatedDriverTracking(enabledDrivers) {
   const intervalRef = useRef(null);
   const positionsRef = useRef({});
 
