@@ -126,5 +126,31 @@
   }
   body {
     @apply bg-background text-foreground;
+    overscroll-behavior-y: none;
+  }
+  button,
+  a[role="tab"],
+  nav a,
+  nav button,
+  [data-nav-item] {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  svg {
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
+
+@layer utilities {
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }

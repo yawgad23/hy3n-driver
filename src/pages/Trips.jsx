@@ -8,6 +8,7 @@ import { Search, MapPin } from "lucide-react";
 import TripRowWithCheckbox from "../components/trips/TripRowWithCheckbox";
 import AddTripDialog from "../components/trips/AddTripDialog";
 import BulkTripActions from "../components/trips/BulkTripActions";
+import PullToRefresh from "@/components/PullToRefresh";
 
 export default function Trips() {
   const [search, setSearch] = useState("");
@@ -41,7 +42,12 @@ export default function Trips() {
     return matchSearch && matchStatus;
   });
 
+  const handleRefresh = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["trips"] });
+  };
+
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -109,5 +115,6 @@ export default function Trips() {
         onBulkUpdate={clearSelection}
       />
     </div>
+    </PullToRefresh>
   );
 }

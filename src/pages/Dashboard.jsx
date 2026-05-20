@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Users, MapPin, DollarSign, TrendingUp, Navigation } from "lucide-react";
 import { motion } from "framer-motion";
@@ -10,10 +10,13 @@ import NotificationPermissionBanner from "@/components/NotificationPermissionBan
 import QuickActions from "../components/dashboard/QuickActions";
 import PerformanceMetrics from "../components/dashboard/PerformanceMetrics";
 import RealTimeActivityFeed from "../components/dashboard/RealTimeActivityFeed";
+import PullToRefresh from "@/components/PullToRefresh";
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const { data: drivers = [], isLoading: driversLoading } = useQuery({
     queryKey: ["drivers"],
     queryFn: () => base44.entities.Driver.list("-created_date"),
@@ -24,11 +27,16 @@ export default function Dashboard() {
     queryFn: () => base44.entities.Trip.list("-created_date", 20),
   });
 
+  const handleRefresh = async () => {
+    await queryClient.invalidateQueries();
+  };
+
   const activeCount = drivers.filter(d => d.status === "active" || d.status === "on_trip").length;
   const totalRevenue = trips.filter(t => t.status === "completed").reduce((sum, t) => sum + (t.fare || 0), 0);
   const completedTrips = trips.filter(t => t.status === "completed").length;
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Notification Permission Banner */}
       <NotificationPermissionBanner />
@@ -123,5 +131,6 @@ export default function Dashboard() {
         </motion.div>
       </div>
     </div>
+    </PullToRefresh>
   );
 }

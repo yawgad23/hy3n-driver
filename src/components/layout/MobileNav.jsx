@@ -17,7 +17,7 @@ export default function MobileNav() {
   const { currentTab } = useTabState();
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-xl border-t border-border safe-area-bottom">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-xl border-t border-border safe-bottom">
       <div className="flex items-center justify-around py-2 px-4">
         {navItems.map((item) => {
           const isActive = currentTab === item.tab || location.pathname === item.path;

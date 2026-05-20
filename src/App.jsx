@@ -1,7 +1,8 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -24,6 +25,7 @@ import FoundItems from './pages/FoundItems';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const location = useLocation();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -44,24 +46,35 @@ const AuthenticatedApp = () => {
 
   return (
     <TabStateProvider>
-      <Routes>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/drivers" element={<Drivers />} />
-          <Route path="/drivers/:id" element={<DriverDetails />} />
-          <Route path="/trips" element={<Trips />} />
-          <Route path="/trips/:id" element={<TripDetails />} />
-          <Route path="/map" element={<MapDashboard />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/schedule" element={<Schedule />} />
-          <Route path="/shifts" element={<Shifts />} />
-          <Route path="/driver-app" element={<DriverApp />} />
-          <Route path="/earnings" element={<DriverEarningsDashboard />} />
-          <Route path="/found-items" element={<FoundItems />} />
-        </Route>
-        <Route path="/driver-register" element={<DriverRegister />} />
-        <Route path="*" element={<PageNotFound />} />
-      </Routes>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={location.pathname}
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -24 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+          style={{ width: "100%", minHeight: "100vh" }}
+        >
+          <Routes location={location}>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/drivers" element={<Drivers />} />
+              <Route path="/drivers/:id" element={<DriverDetails />} />
+              <Route path="/trips" element={<Trips />} />
+              <Route path="/trips/:id" element={<TripDetails />} />
+              <Route path="/map" element={<MapDashboard />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/schedule" element={<Schedule />} />
+              <Route path="/shifts" element={<Shifts />} />
+              <Route path="/driver-app" element={<DriverApp />} />
+              <Route path="/earnings" element={<DriverEarningsDashboard />} />
+              <Route path="/found-items" element={<FoundItems />} />
+            </Route>
+            <Route path="/driver-register" element={<DriverRegister />} />
+            <Route path="*" element={<PageNotFound />} />
+          </Routes>
+        </motion.div>
+      </AnimatePresence>
     </TabStateProvider>
   );
 };

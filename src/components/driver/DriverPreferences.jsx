@@ -1,16 +1,38 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { 
   Bell, BellOff, Volume2, VolumeX, 
-  MapPin, Zap, Clock, Star, MessageSquare, Phone
+  MapPin, Zap, Star, Trash2, AlertTriangle
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { base44 } from "@/api/base44Client";
 
 export default function DriverPreferences({ driver }) {
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    if (driver?.id) {
+      await base44.entities.Driver.delete(driver.id);
+    }
+    toast.success("Account data deleted. You have been signed out.");
+    setTimeout(() => base44.auth.logout("/"), 1500);
+  };
+
   const [prefs, setPrefs] = useState({
     soundAlerts: true,
     autoAccept: false,
@@ -61,6 +83,7 @@ export default function DriverPreferences({ driver }) {
   ];
 
   return (
+  <div className="space-y-4">
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="font-heading text-base">Driver Preferences</CardTitle>
@@ -94,5 +117,47 @@ export default function DriverPreferences({ driver }) {
         })}
       </CardContent>
     </Card>
+
+    {/* Account Deletion */}
+    <Card className="border-destructive/30">
+      <CardHeader className="pb-3">
+        <CardTitle className="font-heading text-base text-destructive flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4" />
+          Danger Zone
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        <p className="text-sm text-muted-foreground mb-4">
+          Permanently delete your driver profile and all associated data. This action cannot be undone.
+        </p>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" className="w-full gap-2" disabled={deleting}>
+              <Trash2 className="w-4 h-4" />
+              {deleting ? "Deleting..." : "Delete My Account"}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete your driver profile, trip history, and all personal data.
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteAccount}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                Yes, delete my account
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </CardContent>
+    </Card>
+  </div>
   );
 }

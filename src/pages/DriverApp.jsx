@@ -133,7 +133,7 @@ export default function DriverApp() {
       </AnimatePresence>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border safe-bottom">
         <div className="max-w-lg mx-auto">
           <div className="grid grid-cols-4">
             {TABS.map(tab => {
