@@ -28,6 +28,7 @@ import DriverMessageDialog from "./DriverMessageDialog";
 import PassengerRatingDialog from "./PassengerRatingDialog";
 import SafetyMonitor from "./SafetyMonitor";
 import SafetyReportDialog from "./SafetyReportDialog";
+import DriverTripMap from "./DriverTripMap";
 import { toast } from "sonner";
 
 export default function DriverDashboard() {
@@ -38,6 +39,7 @@ export default function DriverDashboard() {
   const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [showSafetyReport, setShowSafetyReport] = useState(false);
   const [safetyData, setSafetyData] = useState(null);
+  const [tripPhase, setTripPhase] = useState("to_pickup"); // "to_pickup" | "to_dropoff"
   const queryClient = useQueryClient();
 
   // Fetch driver profile
@@ -88,6 +90,7 @@ export default function DriverDashboard() {
 
   const handleAcceptTrip = (trip) => {
     setCurrentTrip(trip);
+    setTripPhase("to_pickup");
     setTripRequests([]);
     toast.success("Trip started! Navigate to pickup.");
   };
@@ -262,11 +265,32 @@ export default function DriverDashboard() {
                 </div>
               </CardHeader>
               <CardContent className="p-5 space-y-4">
-                {/* Safety Monitor */}
-                <SafetyMonitor 
-                  isActive={true} 
-                  tripId={currentTrip.id}
-                />
+                {/* Live Trip Map */}
+                <DriverTripMap trip={currentTrip} phase={tripPhase} />
+
+                {/* Phase toggle */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    size="sm"
+                    variant={tripPhase === "to_pickup" ? "default" : "outline"}
+                    onClick={() => setTripPhase("to_pickup")}
+                    className={tripPhase === "to_pickup" ? "bg-green-600 hover:bg-green-700" : ""}
+                  >
+                    <MapPin className="w-4 h-4 mr-1" />
+                    To Pickup
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={tripPhase === "to_dropoff" ? "default" : "outline"}
+                    onClick={() => setTripPhase("to_dropoff")}
+                    className={tripPhase === "to_dropoff" ? "bg-red-600 hover:bg-red-700" : ""}
+                  >
+                    <MapPin className="w-4 h-4 mr-1" />
+                    To Dropoff
+                  </Button>
+                </div>
+
+                {/* Locations */}
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
@@ -276,11 +300,7 @@ export default function DriverDashboard() {
                       <p className="text-xs text-muted-foreground font-medium">PICKUP</p>
                       <p className="text-sm font-medium">{currentTrip.pickup_location}</p>
                     </div>
-                    <Button variant="outline" size="sm" onClick={handleNavigateToPickup}>
-                      <Navigation className="w-4 h-4" />
-                    </Button>
                   </div>
-
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
                       <MapPin className="w-4 h-4 text-red-600 dark:text-red-400" />
@@ -289,11 +309,14 @@ export default function DriverDashboard() {
                       <p className="text-xs text-muted-foreground font-medium">DROPOFF</p>
                       <p className="text-sm font-medium">{currentTrip.dropoff_location}</p>
                     </div>
-                    <Button variant="outline" size="sm" onClick={handleNavigateToDropoff}>
-                      <Navigation className="w-4 h-4" />
-                    </Button>
                   </div>
                 </div>
+
+                {/* Safety Monitor */}
+                <SafetyMonitor 
+                  isActive={true} 
+                  tripId={currentTrip.id}
+                />
 
                 <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border">
                   <div className="text-center">
