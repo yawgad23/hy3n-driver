@@ -57,6 +57,16 @@
       "default": "pending",
       "description": "Trip status"
     },
+    "trip_type": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "comfort",
+        "premium"
+      ],
+      "default": "standard",
+      "description": "Trip tier \u2014 Kantanka Hyen vehicles are always comfort"
+    },
     "fare": {
       "type": "number",
       "description": "Trip fare in USD"

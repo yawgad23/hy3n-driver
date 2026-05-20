@@ -13,6 +13,9 @@ import DriverSuggestions from "./DriverSuggestions";
 import LocationAutocomplete from "@/components/ui/location-autocomplete";
 import FareCalculator from "./FareCalculator";
 
+const isKantankaHyen = (vehicleModel = "") =>
+  vehicleModel.toLowerCase().includes("kantanka hyen");
+
 const initialForm = {
   driver_name: "",
   passenger_name: "",
@@ -22,6 +25,7 @@ const initialForm = {
   distance_km: "",
   duration_min: "",
   status: "pending",
+  trip_type: "standard",
   trip_date: new Date().toISOString().slice(0, 16),
   pickup_lat: "",
   pickup_lng: "",
@@ -88,11 +92,15 @@ export default function AddTripDialog({ onTripAdded }) {
       setForm(initialForm);
       setSelectedDriver(null);
       
+      const resolvedDriverVehicle = activeTab === "auto" && selectedDriver ? selectedDriver.vehicle_model : "";
+      const resolvedTripType = isKantankaHyen(resolvedDriverVehicle) ? "comfort" : (form.trip_type || "standard");
+
       // Create in background
       const newTrip = await base44.entities.Trip.create({
         ...form,
         ...coords,
         driver_name: activeTab === "auto" && selectedDriver ? selectedDriver.full_name : form.driver_name,
+        trip_type: resolvedTripType,
         fare: form.fare ? Number(form.fare) : (calculatedFare || undefined),
         distance_km: form.distance_km ? Number(form.distance_km) : undefined,
         duration_min: form.duration_min ? Number(form.duration_min) : undefined,
@@ -116,10 +124,12 @@ export default function AddTripDialog({ onTripAdded }) {
 
   const handleDriverSelect = (driver) => {
     setSelectedDriver(driver);
-    // Auto-fill driver name if not already set
-    if (!form.driver_name) {
-      setForm(prev => ({ ...prev, driver_name: driver.full_name }));
-    }
+    const isComfort = isKantankaHyen(driver.vehicle_model || "");
+    setForm(prev => ({
+      ...prev,
+      driver_name: prev.driver_name || driver.full_name,
+      trip_type: isComfort ? "comfort" : prev.trip_type,
+    }));
   };
 
   return (

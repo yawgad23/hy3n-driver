@@ -56,7 +56,15 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
     else setTripRequests([]);
   }, [pendingTrips]);
 
-  const handleAcceptTrip = (trip) => {
+  const handleAcceptTrip = async (trip) => {
+    // Auto-set comfort type for Kantanka Hyen drivers
+    if (
+      driver?.vehicle_model?.toLowerCase().includes("kantanka hyen") &&
+      trip.trip_type !== "comfort"
+    ) {
+      await base44.entities.Trip.update(trip.id, { trip_type: "comfort" });
+    }
+
     const newQueue = [...multiStopQueue, trip];
     setMultiStopQueue(newQueue);
 
