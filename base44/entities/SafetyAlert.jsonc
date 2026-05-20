@@ -1,0 +1,108 @@
+{
+  "name": "SafetyAlert",
+  "type": "object",
+  "properties": {
+    "trip_id": {
+      "type": "string",
+      "description": "Reference to the flagged trip"
+    },
+    "driver_id": {
+      "type": "string",
+      "description": "Reference to the driver"
+    },
+    "driver_name": {
+      "type": "string",
+      "description": "Driver name for quick display"
+    },
+    "trip_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the trip occurred"
+    },
+    "pickup_location": {
+      "type": "string",
+      "description": "Trip pickup location"
+    },
+    "dropoff_location": {
+      "type": "string",
+      "description": "Trip dropoff location"
+    },
+    "violations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of safety violations detected"
+    },
+    "safety_score": {
+      "type": "number",
+      "description": "Safety score from trip (0-100)"
+    },
+    "max_speed": {
+      "type": "number",
+      "description": "Max speed recorded during trip (km/h)"
+    },
+    "hard_braking_events": {
+      "type": "number",
+      "description": "Number of hard braking events"
+    },
+    "rapid_acceleration_events": {
+      "type": "number",
+      "description": "Number of rapid acceleration events"
+    },
+    "sharp_turns": {
+      "type": "number",
+      "description": "Number of sharp turns"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium",
+      "description": "Alert severity level"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "reviewed",
+        "feedback_sent",
+        "resolved"
+      ],
+      "default": "open",
+      "description": "Manager review status"
+    },
+    "manager_notes": {
+      "type": "string",
+      "description": "Internal notes from the manager"
+    },
+    "feedback_message": {
+      "type": "string",
+      "description": "Feedback sent to the driver"
+    },
+    "feedback_sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When feedback was sent"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Manager who reviewed the alert"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the alert was reviewed"
+    }
+  },
+  "required": [
+    "trip_id",
+    "driver_name",
+    "violations",
+    "severity"
+  ]
+}

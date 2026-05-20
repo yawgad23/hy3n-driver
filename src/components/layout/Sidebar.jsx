@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, MapPin, Car, Map, BarChart3, Calendar, Clock, Smartphone, Wallet, Package } from "lucide-react";
+import { LayoutDashboard, Users, MapPin, Car, Map, BarChart3, Calendar, Clock, Smartphone, Wallet, Package, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
   { label: "Found Items", path: "/found-items", icon: Package },
   { label: "Driver App", path: "/driver-app", icon: Smartphone },
   { label: "Earnings", path: "/earnings", icon: Wallet },
+  { label: "Safety Alerts", path: "/safety-alerts", icon: ShieldAlert },
 ];
 
 export default function Sidebar() {
