@@ -54,7 +54,7 @@ Context:
 - Current time: ${hourLabel} on a ${dayName}
 - Time-of-day period: ${tod.label} (demand multiplier: ${tod.multiplier})
 - Route density (active/pending trips in system): ${routeDensity} (${activeTrips.length} active trips)
-- Driver historical avg fare per trip: $${avgFare.toFixed(2)}
+- Driver historical avg fare per trip: ₵${avgFare.toFixed(2)}
 - Driver historical avg trip duration: ${avgDuration.toFixed(0)} minutes
 - Driver completed trips total: ${completedTrips.length}
 
@@ -144,7 +144,7 @@ Output a JSON object with exactly this structure:
               <div>
                 <p className="text-xs text-muted-foreground">Predicted next 4h</p>
                 <p className="text-3xl font-heading font-bold text-primary">
-                  ${prediction.total_predicted?.toFixed(2)}
+                  ₵{prediction.total_predicted?.toFixed(2)}
                 </p>
               </div>
               <div className="text-right space-y-1">
@@ -177,7 +177,7 @@ Output a JSON object with exactly this structure:
                       {DEMAND_LABELS[h.demand] || h.demand}
                     </span>
                   </div>
-                  <p className="text-xl font-heading font-bold text-foreground">${h.predicted?.toFixed(2)}</p>
+                  <p className="text-xl font-heading font-bold text-foreground">₵{h.predicted?.toFixed(2)}</p>
                   <p className="text-[10px] text-muted-foreground mt-1 leading-tight">{h.tip}</p>
                 </motion.div>
               ))}

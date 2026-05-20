@@ -126,7 +126,7 @@ export default function DriverEarningsDashboard() {
         {[
           {
             label: "Today's Earnings",
-            value: `$${todayEarnings.toFixed(2)}`,
+            value: `₵${todayEarnings.toFixed(2)}`,
             sub: `${todayTrips.length} trips today`,
             icon: DollarSign,
             color: "text-accent",
@@ -134,7 +134,7 @@ export default function DriverEarningsDashboard() {
           },
           {
             label: "This Week",
-            value: `$${weeklyEarnings.toFixed(2)}`,
+            value: `₵${weeklyEarnings.toFixed(2)}`,
             sub: `${weeklyTrips.length} trips`,
             icon: Calendar,
             color: "text-primary",
@@ -142,15 +142,15 @@ export default function DriverEarningsDashboard() {
           },
           {
             label: "Avg Hourly Rate",
-            value: `$${overallHourlyRate.toFixed(2)}/hr`,
-            sub: `$${avgPerTrip.toFixed(2)} per trip`,
+            value: `₵${overallHourlyRate.toFixed(2)}/hr`,
+            sub: `₵${avgPerTrip.toFixed(2)} per trip`,
             icon: Gauge,
             color: "text-chart-3",
             bg: "bg-chart-3/10",
           },
           {
             label: "In Progress",
-            value: `$${inProgressTrips.reduce((s, t) => s + (t.fare || 0), 0).toFixed(2)}`,
+            value: `₵${inProgressTrips.reduce((s, t) => s + (t.fare || 0), 0).toFixed(2)}`,
             sub: `${inProgressTrips.length} active trips`,
             icon: Clock,
             color: "text-chart-4",
@@ -200,16 +200,16 @@ export default function DriverEarningsDashboard() {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={11} />
-                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickFormatter={(v) => `$${v}`} />
-                      <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`$${v.toFixed(2)}`, "Earnings"]} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickFormatter={(v) => `₵${v}`} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`₵${v.toFixed(2)}`, "Earnings"]} />
                       <Area type="monotone" dataKey="earnings" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#gEarnings)" />
-                    </AreaChart>
-                  ) : (
-                    <BarChart data={weeklyTrendData}>
+                      </AreaChart>
+                      ) : (
+                      <BarChart data={weeklyTrendData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" fontSize={11} />
-                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickFormatter={(v) => `$${v}`} />
-                      <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`$${v.toFixed(2)}`, "Earnings"]} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickFormatter={(v) => `₵${v}`} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`₵${v.toFixed(2)}`, "Earnings"]} />
                       <Bar dataKey="earnings" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   )}
@@ -241,10 +241,10 @@ export default function DriverEarningsDashboard() {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "Total Revenue", value: `$${totalEarnings.toFixed(2)}`, color: "text-accent" },
+                { label: "Total Revenue", value: `₵${totalEarnings.toFixed(2)}`, color: "text-accent" },
                 { label: "Completed Trips", value: completedTrips.length, color: "text-primary" },
-                { label: "Avg $/hr", value: `$${overallHourlyRate.toFixed(2)}`, color: "text-chart-3" },
-                { label: "Avg Fare", value: `$${avgPerTrip.toFixed(2)}`, color: "text-chart-4" },
+                { label: "Avg ₵/hr", value: `₵${overallHourlyRate.toFixed(2)}`, color: "text-chart-3" },
+                { label: "Avg Fare", value: `₵${avgPerTrip.toFixed(2)}`, color: "text-chart-4" },
               ].map(({ label, value, color }) => (
                 <div key={label} className="text-center p-4 rounded-xl bg-secondary/40">
                   <p className={`text-2xl font-heading font-bold ${color}`}>{value}</p>

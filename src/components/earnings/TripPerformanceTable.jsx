@@ -52,14 +52,14 @@ export default function TripPerformanceTable({ trips }) {
                         </p>
                       </td>
                       <td className="px-4 py-2.5 text-right">
-                        <span className="font-bold text-accent">${trip.fare?.toFixed(2)}</span>
+                        <span className="font-bold text-accent">₵{trip.fare?.toFixed(2)}</span>
                       </td>
                       <td className="px-4 py-2.5 text-right text-xs text-muted-foreground">
                         {trip.distance_km?.toFixed(1) || "—"} km
                       </td>
                       <td className="px-4 py-2.5 text-right">
                         <span className={`font-bold text-sm ${rateColor(trip.hourlyRate)}`}>
-                          ${trip.hourlyRate.toFixed(0)}
+                          ₵{trip.hourlyRate.toFixed(0)}
                         </span>
                       </td>
                     </tr>
@@ -80,9 +80,9 @@ export default function TripPerformanceTable({ trips }) {
                     </p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="font-bold text-accent text-sm">${trip.fare?.toFixed(2)}</p>
+                    <p className="font-bold text-accent text-sm">₵{trip.fare?.toFixed(2)}</p>
                     <p className={`text-xs font-semibold ${rateColor(trip.hourlyRate)}`}>
-                      ${trip.hourlyRate.toFixed(0)}/hr
+                      ₵{trip.hourlyRate.toFixed(0)}/hr
                     </p>
                   </div>
                 </div>

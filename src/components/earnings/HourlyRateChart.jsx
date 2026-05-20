@@ -36,7 +36,7 @@ export default function HourlyRateChart({ trips }) {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Clock className="w-4 h-4 text-primary" />
-          Hourly Rate ($/hr)
+          Hourly Rate (₵/hr)
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -45,7 +45,7 @@ export default function HourlyRateChart({ trips }) {
             <BarChart data={displayHours} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={10} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} tickFormatter={(v) => `$${v.toFixed(0)}`} />
+              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} tickFormatter={(v) => `₵${v.toFixed(0)}`} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
@@ -53,7 +53,7 @@ export default function HourlyRateChart({ trips }) {
                   borderRadius: "8px",
                   fontSize: "12px",
                 }}
-                formatter={(value, name) => [`$${value.toFixed(2)}/hr`, "Rate"]}
+                formatter={(value, name) => [`₵${value.toFixed(2)}/hr`, "Rate"]}
                 labelFormatter={(label) => `Hour: ${label}`}
               />
               <Bar dataKey="rate" radius={[3, 3, 0, 0]}>
