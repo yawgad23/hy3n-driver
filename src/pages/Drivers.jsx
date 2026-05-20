@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import MobileSelect from "@/components/ui/MobileSelect";
 import { Search, Filter } from "lucide-react";
 import DriverCard from "../components/drivers/DriverCard";
 import AddDriverDialog from "../components/drivers/AddDriverDialog";
@@ -46,18 +46,19 @@ export default function Drivers() {
             className="pl-9"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-40">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="on_trip">On Trip</SelectItem>
-            <SelectItem value="offline">Offline</SelectItem>
-            <SelectItem value="suspended">Suspended</SelectItem>
-          </SelectContent>
-        </Select>
+        <MobileSelect
+          value={statusFilter}
+          onValueChange={setStatusFilter}
+          placeholder="Status"
+          options={[
+            { value: "all", label: "All Status" },
+            { value: "active", label: "Active" },
+            { value: "on_trip", label: "On Trip" },
+            { value: "offline", label: "Offline" },
+            { value: "suspended", label: "Suspended" },
+          ]}
+          triggerClassName="w-full sm:w-40"
+        />
       </div>
 
       {/* Driver List */}
