@@ -18,6 +18,8 @@ import SafetyReportDialog from "./SafetyReportDialog";
 import DriverTripMap from "./DriverTripMap";
 import DriverStatusBar from "./DriverStatusBar";
 import DriverEarningsSnapshot from "./DriverEarningsSnapshot";
+import MultiStopPanel from "./MultiStopPanel";
+import { optimizeStops } from "@/hooks/useMultiStopOptimizer";
 import { toast } from "sonner";
 
 export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
@@ -28,6 +30,12 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
   const [showSafetyReport, setShowSafetyReport] = useState(false);
   const [safetyData, setSafetyData] = useState(null);
   const [tripPhase, setTripPhase] = useState("to_pickup");
+  // Multi-stop queue
+  const [multiStopQueue, setMultiStopQueue] = useState([]); // accepted trips queued
+  const [optimizedStops, setOptimizedStops] = useState([]); // ordered stop list
+  const [currentStopIndex, setCurrentStopIndex] = useState(0);
+  const [isMultiStopMode, setIsMultiStopMode] = useState(false);
+  const [driverPos] = useState({ lat: 40.7128, lng: -74.006 }); // default NYC; replace with real GPS
   const queryClient = useQueryClient();
 
   const { data: pendingTrips } = useQuery({
@@ -49,10 +57,58 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
   }, [pendingTrips]);
 
   const handleAcceptTrip = (trip) => {
-    setCurrentTrip(trip);
-    setTripPhase("to_pickup");
-    setTripRequests([]);
-    toast.success("Trip accepted! Head to pickup.");
+    const newQueue = [...multiStopQueue, trip];
+    setMultiStopQueue(newQueue);
+
+    if (newQueue.length > 1) {
+      // Multi-stop mode: optimize all queued trips
+      const stops = optimizeStops(newQueue, driverPos.lat, driverPos.lng);
+      setOptimizedStops(stops);
+      setCurrentStopIndex(0);
+      setIsMultiStopMode(true);
+      setCurrentTrip(trip); // keep last accepted as "current" for safety/rating
+      setTripRequests([]);
+      toast.success(`🗺️ ${newQueue.length} trips queued — route optimized!`);
+    } else {
+      // Single trip mode (normal)
+      setCurrentTrip(trip);
+      setTripPhase("to_pickup");
+      setTripRequests([]);
+      toast.success("Trip accepted! Head to pickup.");
+    }
+  };
+
+  const handleQueueAnother = (trip) => {
+    // Accept an additional trip into the multi-stop queue
+    const newQueue = [...multiStopQueue, trip];
+    setMultiStopQueue(newQueue);
+    const stops = optimizeStops(newQueue, driverPos.lat, driverPos.lng);
+    setOptimizedStops(stops);
+    setCurrentStopIndex(0);
+    setIsMultiStopMode(true);
+    toast.success(`Added to route! Now ${newQueue.length} stops optimized.`);
+  };
+
+  const handleMultiStopComplete = (stop) => {
+    const nextIndex = currentStopIndex + 1;
+    if (nextIndex >= optimizedStops.length) {
+      // All stops done
+      toast.success("🎉 All stops completed!");
+      setShowRatingDialog(true);
+    } else {
+      setCurrentStopIndex(nextIndex);
+      const nextStop = optimizedStops[nextIndex];
+      toast.success(`Stop done! Heading to: ${nextStop.address}`);
+    }
+  };
+
+  const handleCancelMultiStop = () => {
+    setIsMultiStopMode(false);
+    setMultiStopQueue([]);
+    setOptimizedStops([]);
+    setCurrentStopIndex(0);
+    setCurrentTrip(null);
+    toast.info("Multi-stop route cancelled");
   };
 
   const handleDeclineTrip = (tripId) => {
@@ -131,9 +187,19 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
         <DriverEarningsSnapshot driver={driver} todayTrips={myTrips} />
       )}
 
-      {/* Active Trip */}
+      {/* Multi-Stop Optimizer Panel */}
+      {isMultiStopMode && optimizedStops.length > 0 && (
+        <MultiStopPanel
+          stops={optimizedStops}
+          currentStopIndex={currentStopIndex}
+          onStopComplete={handleMultiStopComplete}
+          onCancel={handleCancelMultiStop}
+        />
+      )}
+
+      {/* Active Trip (single mode) */}
       <AnimatePresence>
-        {currentTrip && (
+        {currentTrip && !isMultiStopMode && (
           <motion.div
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -271,22 +337,32 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
 
       {/* Trip Requests */}
       <AnimatePresence>
-        {isOnline && tripRequests.length > 0 && !currentTrip && (
+        {isOnline && tripRequests.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-heading font-bold text-base">Incoming Requests</h3>
-                <Badge className="bg-primary animate-pulse">
-                  <Clock className="w-3 h-3 mr-1" />
-                  {tripRequests.length} Live
-                </Badge>
+                <h3 className="font-heading font-bold text-base">
+                  {currentTrip ? "Queue Another Trip" : "Incoming Requests"}
+                </h3>
+                <div className="flex items-center gap-2">
+                  {currentTrip && (
+                    <Badge className="bg-accent/20 text-accent border-accent/30 text-xs">
+                      +Multi-stop
+                    </Badge>
+                  )}
+                  <Badge className="bg-primary animate-pulse">
+                    <Clock className="w-3 h-3 mr-1" />
+                    {tripRequests.length} Live
+                  </Badge>
+                </div>
               </div>
               {tripRequests.map(trip => (
                 <TripRequestCard
                   key={trip.id}
                   trip={trip}
-                  onAccept={handleAcceptTrip}
+                  onAccept={currentTrip ? handleQueueAnother : handleAcceptTrip}
                   onDecline={handleDeclineTrip}
+                  queueMode={!!currentTrip}
                 />
               ))}
             </div>

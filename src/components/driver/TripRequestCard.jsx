@@ -14,13 +14,14 @@ import {
   X,
   User,
   Star,
-  Car
+  Car,
+  Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
-export default function TripRequestCard({ trip, onAccept, onDecline }) {
+export default function TripRequestCard({ trip, onAccept, onDecline, queueMode = false }) {
   const [accepting, setAccepting] = useState(false);
   const [declining, setDeclining] = useState(false);
 
@@ -107,10 +108,17 @@ export default function TripRequestCard({ trip, onAccept, onDecline }) {
                 </div>
               </div>
             </div>
-            <Badge className="bg-primary text-primary-foreground">
-              <Clock className="w-3 h-3 mr-1" />
-              Now
-            </Badge>
+            {queueMode ? (
+              <Badge className="bg-accent/20 text-accent border-accent/30">
+                <Plus className="w-3 h-3 mr-1" />
+                Add to Route
+              </Badge>
+            ) : (
+              <Badge className="bg-primary text-primary-foreground">
+                <Clock className="w-3 h-3 mr-1" />
+                Now
+              </Badge>
+            )}
           </div>
         </div>
 
@@ -175,12 +183,12 @@ export default function TripRequestCard({ trip, onAccept, onDecline }) {
               Decline
             </Button>
             <Button
-              className="h-12 bg-primary hover:bg-primary/90"
+              className={cn("h-12", queueMode ? "bg-accent hover:bg-accent/90" : "bg-primary hover:bg-primary/90")}
               onClick={handleAccept}
               disabled={accepting || declining}
             >
-              <Check className="w-5 h-5 mr-2" />
-              {accepting ? "Accepting..." : "Accept"}
+              {queueMode ? <Plus className="w-5 h-5 mr-2" /> : <Check className="w-5 h-5 mr-2" />}
+              {accepting ? "Adding..." : queueMode ? "Queue Trip" : "Accept"}
             </Button>
           </div>
 
