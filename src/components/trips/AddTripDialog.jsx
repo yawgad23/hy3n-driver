@@ -187,7 +187,7 @@ export default function AddTripDialog({ onTripAdded }) {
               />
             </div>
             <div>
-              <Label>Fare ($)</Label>
+              <Label>Fare (₵)</Label>
               <Input type="number" step="0.01" value={form.fare} onChange={(e) => handleChange("fare", e.target.value)} />
             </div>
             <div>
