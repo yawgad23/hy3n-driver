@@ -1,25 +1,31 @@
-import { useState, useEffect } from "react";
-import DriverDashboard from "@/components/driver/DriverDashboard";
-import AddDriverProfileDialog from "@/components/driver/AddDriverProfileDialog";
-import SplashScreen from "@/components/driver/SplashScreen";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Car, LogIn, UserPlus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { motion, AnimatePresence } from "framer-motion";
+import { Car, UserPlus, LogIn, Home, Clock, User, Settings, BarChart2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import SplashScreen from "@/components/driver/SplashScreen";
+import DriverHomeTab from "@/components/driver/DriverHomeTab";
+import TripHistoryTab from "@/components/driver/TripHistoryTab";
+import DriverProfileTab from "@/components/driver/DriverProfileTab";
+import DriverPreferences from "@/components/driver/DriverPreferences";
+import AddDriverProfileDialog from "@/components/driver/AddDriverProfileDialog";
+import { cn } from "@/lib/utils";
+
+const TABS = [
+  { key: "home", label: "Home", icon: Home },
+  { key: "history", label: "History", icon: Clock },
+  { key: "profile", label: "Profile", icon: User },
+  { key: "settings", label: "Settings", icon: Settings },
+];
 
 export default function DriverApp() {
   const [showSplash, setShowSplash] = useState(true);
-
-  useEffect(() => {
-    // Hide splash after 2.5 seconds
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 2500);
-
-    return () => clearTimeout(timer);
-  }, []);
+  const [activeTab, setActiveTab] = useState("home");
+  const [isOnline, setIsOnline] = useState(false);
 
   const { data: driver, isLoading } = useQuery({
     queryKey: ["driver-profile"],
@@ -29,57 +35,143 @@ export default function DriverApp() {
     },
   });
 
+  const { data: allTrips = [] } = useQuery({
+    queryKey: ["driver-trips", driver?.full_name],
+    queryFn: () => base44.entities.Trip.filter({ driver_name: driver?.full_name }),
+    enabled: !!driver?.full_name,
+  });
+
   if (showSplash) {
-    return <SplashScreen />;
+    return <SplashScreen onDone={() => setShowSplash(false)} />;
   }
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!driver) {
+    return (
+      <div className="max-w-md mx-auto space-y-6 pb-20">
+        <div className="text-center pt-10">
+          <div className="w-24 h-24 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+            <Car className="w-12 h-12 text-primary" />
+          </div>
+          <h1 className="font-heading text-3xl font-bold mb-2">Hy3N Driver</h1>
+          <p className="text-muted-foreground text-sm mb-8">
+            Your professional rideshare partner
+          </p>
+        </div>
+        <div className="space-y-3">
+          <Button className="w-full h-12" asChild>
+            <Link to="/driver-register">
+              <UserPlus className="w-5 h-5 mr-2" />
+              Register as a Driver
+            </Link>
+          </Button>
+          <Button className="w-full h-12" variant="outline" asChild>
+            <Link to="/login">
+              <LogIn className="w-5 h-5 mr-2" />
+              Sign In
+            </Link>
+          </Button>
+          <AddDriverProfileDialog />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-20">
-      <div className="flex items-center justify-between">
+    <div className="max-w-lg mx-auto pb-24">
+      {/* App Header */}
+      <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight">Driver App</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Accept trips and track your earnings
+          <h1 className="font-heading text-2xl font-bold">Hy3N Driver</h1>
+          <p className="text-xs text-muted-foreground">
+            Welcome, {driver.full_name?.split(" ")[0]} 👋
           </p>
         </div>
-        {!driver && <AddDriverProfileDialog />}
+        <div className="flex items-center gap-2">
+          <Badge className={cn(
+            "text-xs",
+            isOnline ? "bg-green-500 text-white" : "bg-muted text-muted-foreground"
+          )}>
+            {isOnline ? "● Online" : "○ Offline"}
+          </Badge>
+        </div>
       </div>
 
-      {!driver ? (
-        <Card>
-          <CardContent className="p-12 text-center space-y-4">
-            <Car className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-            <h3 className="font-heading font-semibold text-lg mb-2">No Driver Profile</h3>
-            <p className="text-muted-foreground text-sm mb-4">
-              Create a driver profile to start receiving trip requests
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Button asChild>
-                <Link to="/driver-register">
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Sign Up as Driver
-                </Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link to="/login">
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Sign In
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <DriverDashboard />
-      )}
+      {/* Tab Content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.18 }}
+        >
+          {activeTab === "home" && (
+            <DriverHomeTab
+              driver={driver}
+              isOnline={isOnline}
+              onToggleOnline={setIsOnline}
+            />
+          )}
+          {activeTab === "history" && (
+            <TripHistoryTab trips={allTrips} />
+          )}
+          {activeTab === "profile" && (
+            <DriverProfileTab driver={driver} />
+          )}
+          {activeTab === "settings" && (
+            <DriverPreferences driver={driver} />
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border">
+        <div className="max-w-lg mx-auto">
+          <div className="grid grid-cols-4">
+            {TABS.map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={cn(
+                    "flex flex-col items-center gap-1 py-3 px-2 transition-all",
+                    isActive
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <div className={cn(
+                    "w-8 h-8 rounded-xl flex items-center justify-center transition-all",
+                    isActive ? "bg-primary/10" : ""
+                  )}>
+                    <Icon className={cn("w-5 h-5", isActive && "text-primary")} />
+                  </div>
+                  <span className={cn("text-[10px] font-medium", isActive && "text-primary")}>
+                    {tab.label}
+                  </span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="tab-indicator"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
+                      style={{ width: "25%", left: `${TABS.indexOf(tab) * 25}%` }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

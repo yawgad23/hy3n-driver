@@ -1,6 +1,12 @@
 import { motion } from "framer-motion";
 
-export default function SplashScreen({ onComplete }) {
+import { useEffect } from "react";
+export default function SplashScreen({ onComplete, onDone }) {
+  const done = onDone || onComplete;
+  useEffect(() => {
+    const t = setTimeout(() => done?.(), 2500);
+    return () => clearTimeout(t);
+  }, []);
   return (
     <motion.div
       initial={{ opacity: 1 }}
