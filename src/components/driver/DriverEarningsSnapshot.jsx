@@ -6,10 +6,12 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
+const COMMISSION_RATE = 0.15;
+
 export default function DriverEarningsSnapshot({ driver, todayTrips = [] }) {
   const todayEarnings = todayTrips
     .filter(t => t.status === "completed")
-    .reduce((sum, t) => sum + (t.fare || 0), 0);
+    .reduce((sum, t) => sum + (t.fare || 0) * (1 - COMMISSION_RATE), 0);
 
   const todayCompleted = todayTrips.filter(t => t.status === "completed").length;
   const dailyGoal = 150;
@@ -25,9 +27,10 @@ export default function DriverEarningsSnapshot({ driver, todayTrips = [] }) {
           <CardContent className="p-4 text-center">
             <DollarSign className="w-6 h-6 text-accent mx-auto mb-1" />
             <p className="text-2xl font-heading font-bold text-accent">
-              ${todayEarnings.toFixed(2)}
+              ₵{todayEarnings.toFixed(2)}
             </p>
             <p className="text-xs text-muted-foreground">Today's Earnings</p>
+            <p className="text-[10px] text-yellow-500/70 mt-0.5">After 15% commission</p>
           </CardContent>
         </Card>
         <Card>
@@ -48,14 +51,14 @@ export default function DriverEarningsSnapshot({ driver, todayTrips = [] }) {
               <span className="font-medium text-sm">Daily Goal</span>
             </div>
             <span className="text-sm font-heading font-bold">
-              ${todayEarnings.toFixed(0)} / ${dailyGoal}
+              ₵{todayEarnings.toFixed(0)} / ₵{dailyGoal}
             </span>
           </div>
           <Progress value={goalProgress} className="h-2.5" />
           <p className="text-xs text-muted-foreground mt-2">
             {goalProgress >= 100
               ? "🎉 Goal reached! Keep going!"
-              : `$${(dailyGoal - todayEarnings).toFixed(2)} more to hit today's goal`}
+              : `₵${(dailyGoal - todayEarnings).toFixed(2)} more to hit today's goal`}
           </p>
         </CardContent>
       </Card>
@@ -100,7 +103,7 @@ export default function DriverEarningsSnapshot({ driver, todayTrips = [] }) {
                 Keep it up for a bonus reward
               </p>
             </div>
-            <Badge className="ml-auto bg-orange-500 text-white">+$5</Badge>
+            <Badge className="ml-auto bg-orange-500 text-white">+₵5</Badge>
           </CardContent>
         </Card>
       )}

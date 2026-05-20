@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUpRight } from "lucide-react";
 import { format } from "date-fns";
 
+const COMMISSION_RATE = 0.15;
+
 function rateColor(rate) {
   if (rate >= 40) return "text-green-400";
   if (rate >= 20) return "text-yellow-400";
@@ -14,7 +16,8 @@ export default function TripPerformanceTable({ trips }) {
     .slice(0, 10)
     .map((t) => ({
       ...t,
-      hourlyRate: t.duration_min > 0 ? (t.fare / (t.duration_min / 60)) : 0,
+      netFare: t.fare * (1 - COMMISSION_RATE),
+      hourlyRate: t.duration_min > 0 ? (t.fare * (1 - COMMISSION_RATE) / (t.duration_min / 60)) : 0,
     }))
     .sort((a, b) => b.hourlyRate - a.hourlyRate);
 
@@ -52,7 +55,7 @@ export default function TripPerformanceTable({ trips }) {
                         </p>
                       </td>
                       <td className="px-4 py-2.5 text-right">
-                        <span className="font-bold text-accent">₵{trip.fare?.toFixed(2)}</span>
+                        <span className="font-bold text-accent">₵{trip.netFare?.toFixed(2)}</span>
                       </td>
                       <td className="px-4 py-2.5 text-right text-xs text-muted-foreground">
                         {trip.distance_km?.toFixed(1) || "—"} km
@@ -80,7 +83,7 @@ export default function TripPerformanceTable({ trips }) {
                     </p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="font-bold text-accent text-sm">₵{trip.fare?.toFixed(2)}</p>
+                    <p className="font-bold text-accent text-sm">₵{trip.netFare?.toFixed(2)}</p>
                     <p className={`text-xs font-semibold ${rateColor(trip.hourlyRate)}`}>
                       ₵{trip.hourlyRate.toFixed(0)}/hr
                     </p>
