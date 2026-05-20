@@ -41,6 +41,8 @@ export default function EarningsPrediction({ trips }) {
   const tod = getTimeOfDayContext();
 
   useEffect(() => {
+    let cancelled = false;
+
     const run = async () => {
       setLoading(true);
       setError(null);
@@ -70,36 +72,46 @@ Output a JSON object with exactly this structure:
   "strategy_tip": string (one actionable sentence for the driver)
 }`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            total_predicted: { type: "number" },
-            confidence: { type: "string" },
-            demand_trend: { type: "string" },
-            hours: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  label: { type: "string" },
-                  predicted: { type: "number" },
-                  demand: { type: "string" },
-                  tip: { type: "string" },
+      try {
+        const result = await base44.integrations.Core.InvokeLLM({
+          prompt,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              total_predicted: { type: "number" },
+              confidence: { type: "string" },
+              demand_trend: { type: "string" },
+              hours: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    label: { type: "string" },
+                    predicted: { type: "number" },
+                    demand: { type: "string" },
+                    tip: { type: "string" },
+                  },
                 },
               },
+              strategy_tip: { type: "string" },
             },
-            strategy_tip: { type: "string" },
           },
-        },
-      });
+        });
 
-      setPrediction(result);
-      setLoading(false);
+        if (!cancelled) {
+          setPrediction(result);
+          setLoading(false);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError("Could not generate forecast. Please try again.");
+          setLoading(false);
+        }
+      }
     };
 
     run();
+    return () => { cancelled = true; };
   }, []);
 
   return (
