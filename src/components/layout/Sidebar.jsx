@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, MapPin, Car, Map, BarChart3, Calendar, Clock, Smartphone, Wallet, Package, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, Users, MapPin, Map, BarChart3, Calendar, Clock, Smartphone, Wallet, Package, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -23,16 +23,15 @@ export default function Sidebar() {
     <aside className="hidden lg:flex flex-col w-64 bg-sidebar border-r border-sidebar-border min-h-screen p-6">
       {/* Logo */}
       <Link to="/" className="flex items-center gap-3 mb-10">
-        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-          <Car className="w-5 h-5 text-primary-foreground" />
-        </div>
+        <img
+          src="https://media.base44.com/images/public/6a0c20d4cd4c2ab03134bc86/0e79de0ab_ChatGPTImageMay19202602_44_02AM.png"
+          alt="HY3N Driver Logo"
+          className="w-12 h-12 rounded-xl object-cover"
+        />
         <div>
           <h1 className="font-heading text-lg font-bold text-sidebar-foreground tracking-tight">
-            Hy3N
+            HY3N DRIVER
           </h1>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-sidebar-foreground/50 font-medium">
-            Driver
-          </p>
         </div>
       </Link>
 

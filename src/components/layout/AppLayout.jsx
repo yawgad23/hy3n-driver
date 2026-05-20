@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import MobileNav from "./MobileNav";
-import { Car } from "lucide-react";
+
 import { Link } from "react-router-dom";
 import useFleetNotifications from "@/hooks/useFleetNotifications";
 
@@ -15,10 +15,12 @@ export default function AppLayout() {
         {/* Mobile Header */}
         <header className="lg:hidden flex items-center justify-between px-5 py-4 border-b border-border bg-card/80 backdrop-blur-xl sticky top-0 z-40 safe-top">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Car className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-heading text-base font-bold tracking-tight">Hy3N Driver</span>
+            <img
+              src="https://media.base44.com/images/public/6a0c20d4cd4c2ab03134bc86/0e79de0ab_ChatGPTImageMay19202602_44_02AM.png"
+              alt="HY3N Driver Logo"
+              className="w-8 h-8 rounded-lg object-cover"
+            />
+            <span className="font-heading text-base font-bold tracking-tight">HY3N DRIVER</span>
           </Link>
         </header>
         
