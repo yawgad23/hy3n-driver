@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import DriverSuggestions from "./DriverSuggestions";
 import LocationAutocomplete from "@/components/ui/location-autocomplete";
+import FareCalculator from "./FareCalculator";
 
 const initialForm = {
   driver_name: "",
@@ -46,6 +47,7 @@ export default function AddTripDialog({ onTripAdded }) {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("manual");
   const [selectedDriver, setSelectedDriver] = useState(null);
+  const [calculatedFare, setCalculatedFare] = useState(null);
   const navigate = useNavigate();
 
   const handleChange = (field, value) => {
@@ -91,7 +93,7 @@ export default function AddTripDialog({ onTripAdded }) {
         ...form,
         ...coords,
         driver_name: activeTab === "auto" && selectedDriver ? selectedDriver.full_name : form.driver_name,
-        fare: form.fare ? Number(form.fare) : undefined,
+        fare: form.fare ? Number(form.fare) : (calculatedFare || undefined),
         distance_km: form.distance_km ? Number(form.distance_km) : undefined,
         duration_min: form.duration_min ? Number(form.duration_min) : undefined,
         pickup_lat: undefined,
@@ -239,6 +241,14 @@ export default function AddTripDialog({ onTripAdded }) {
               <p className="text-[11px] text-muted-foreground mt-1">Leave empty for auto-assignment</p>
             </div>
           </div>
+
+          {/* Fare Calculator */}
+          <FareCalculator
+            distanceKm={form.distance_km}
+            durationMin={form.duration_min}
+            onFareCalculated={setCalculatedFare}
+          />
+
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
             <Button type="submit" disabled={saving || !form.driver_name || !form.pickup_location || !form.dropoff_location}>
@@ -328,6 +338,13 @@ export default function AddTripDialog({ onTripAdded }) {
                   tripData={form}
                 />
               )}
+
+              {/* Fare Calculator */}
+              <FareCalculator
+                distanceKm={form.distance_km}
+                durationMin={form.duration_min}
+                onFareCalculated={setCalculatedFare}
+              />
               
               <div className="flex justify-end gap-3 pt-2">
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
