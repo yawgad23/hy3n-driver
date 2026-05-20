@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Calculator,
   MapPin,
@@ -12,26 +14,34 @@ import {
   ChevronDown,
   ChevronUp,
   AlertTriangle,
+  Timer,
+  CarFront,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-// ── HY3N Fare Configuration (GH₵, modelled on Uber/Bolt Ghana rates) ─────────
-// Uber Ghana: base ~GH₵3.50, ~GH₵1.80/km, ~GH₵0.18/min
-// Bolt Ghana:  base ~GH₵2.50, ~GH₵1.60/km, ~GH₵0.15/min
-// HY3N sits between the two with a 15% platform commission already separate.
+// ── HY3N Fare Config — Bolt/Uber Ghana style (GH₵) ───────────────────────────
 const FARE_CONFIG = {
-  BASE_FARE: 3.00,          // GH₵ — pickup/flag-fall fee
-  COST_PER_KM: 1.70,        // GH₵/km
-  COST_PER_MIN: 0.17,       // GH₵/min (time component while moving)
-  BOOKING_FEE: 0.80,        // GH₵ fixed platform booking fee
-  SERVICE_FEE_RATE: 0.00,   // Already captured via 15% driver commission — no double-dip
-  MIN_FARE: 6.00,           // GH₵ minimum ride fare
+  BASE_FARE: 3.00,            // GH₵ flag-fall
+  COST_PER_KM: 1.70,         // GH₵/km (moving)
+  COST_PER_MIN_MOVING: 0.17, // GH₵/min while moving
+  BOOKING_FEE: 0.80,         // GH₵ fixed
+  MIN_FARE: 6.00,            // GH₵ minimum ride
+
+  // Waiting fee (like Bolt Ghana)
+  WAITING_FREE_MINS: 3,      // first 3 min free (grace period)
+  WAITING_FEE_PER_MIN: 0.20, // GH₵/min after grace period
+
+  // Traffic congestion fee (like Bolt Ghana — charged when nearly stationary)
+  // Applied per minute when avg speed < 8 km/h (near-standstill in traffic)
+  TRAFFIC_JAM_FEE_PER_MIN: 0.15, // GH₵/min stuck in traffic
+  TRAFFIC_JAM_SPEED_KPH: 8,      // speed threshold for congestion charge
+
   TRAFFIC_MULTIPLIERS: {
-    low:   { label: "Light Traffic",    multiplier: 1.0, color: "text-green-500",  icon: "🟢" },
-    medium:{ label: "Moderate Traffic", multiplier: 1.25,color: "text-yellow-500", icon: "🟡" },
-    high:  { label: "Heavy Traffic",    multiplier: 1.5, color: "text-orange-500", icon: "🟠" },
-    surge: { label: "Surge Pricing",    multiplier: 1.9, color: "text-red-500",    icon: "🔴" },
+    low:    { label: "Light Traffic",    multiplier: 1.0,  color: "text-green-500",  icon: "🟢" },
+    medium: { label: "Moderate Traffic", multiplier: 1.25, color: "text-yellow-500", icon: "🟡" },
+    high:   { label: "Heavy Traffic",    multiplier: 1.5,  color: "text-orange-500", icon: "🟠" },
+    surge:  { label: "Surge Pricing",    multiplier: 1.9,  color: "text-red-500",    icon: "🔴" },
   },
 };
 
@@ -44,17 +54,42 @@ function estimateTrafficLevel(distanceKm, durationMin) {
   return "surge";
 }
 
-export function calculateFare(distanceKm, durationMin) {
+// Estimate how many minutes the vehicle is stuck (speed < threshold)
+// We approximate this as a fraction of total trip time scaled by traffic severity
+function estimateTrafficJamMins(distanceKm, durationMin, trafficLevel) {
+  if (trafficLevel === "low" || trafficLevel === "medium") return 0;
+  const avgSpeedKph = (distanceKm / durationMin) * 60;
+  if (avgSpeedKph >= FARE_CONFIG.TRAFFIC_JAM_SPEED_KPH * 2) return 0;
+  // Rough estimate: proportion of time near-stationary
+  const jamFraction = trafficLevel === "surge" ? 0.35 : 0.20;
+  return Math.round(durationMin * jamFraction);
+}
+
+export function calculateFare(distanceKm, durationMin, waitingMins = 0) {
   if (!distanceKm || !durationMin || distanceKm <= 0 || durationMin <= 0) return null;
 
   const trafficLevel = estimateTrafficLevel(distanceKm, durationMin);
   const traffic = FARE_CONFIG.TRAFFIC_MULTIPLIERS[trafficLevel];
 
+  // Core trip cost
   const distanceCost = distanceKm * FARE_CONFIG.COST_PER_KM;
-  const timeCost = durationMin * FARE_CONFIG.COST_PER_MIN;
+  const timeCost = durationMin * FARE_CONFIG.COST_PER_MIN_MOVING;
   const subtotal = (FARE_CONFIG.BASE_FARE + distanceCost + timeCost) * traffic.multiplier;
-  const rawTotal = subtotal + FARE_CONFIG.BOOKING_FEE;
+
+  // Waiting fee — first WAITING_FREE_MINS are free (Bolt grace period)
+  const billableWaitMins = Math.max(0, waitingMins - FARE_CONFIG.WAITING_FREE_MINS);
+  const waitingFee = billableWaitMins * FARE_CONFIG.WAITING_FEE_PER_MIN;
+
+  // Traffic congestion fee — charged when near-stationary in jam
+  const jamMins = estimateTrafficJamMins(distanceKm, durationMin, trafficLevel);
+  const trafficJamFee = jamMins * FARE_CONFIG.TRAFFIC_JAM_FEE_PER_MIN;
+
+  const rawTotal = subtotal + waitingFee + trafficJamFee + FARE_CONFIG.BOOKING_FEE;
   const total = Math.max(Math.round(rawTotal * 100) / 100, FARE_CONFIG.MIN_FARE);
+
+  const surgeExtra = traffic.multiplier > 1
+    ? (traffic.multiplier - 1) * (FARE_CONFIG.BASE_FARE + distanceCost + timeCost)
+    : 0;
 
   return {
     baseFare: FARE_CONFIG.BASE_FARE,
@@ -65,6 +100,12 @@ export function calculateFare(distanceKm, durationMin) {
     trafficMultiplier: traffic.multiplier,
     trafficColor: traffic.color,
     trafficIcon: traffic.icon,
+    surgeExtra,
+    waitingMins,
+    billableWaitMins,
+    waitingFee,
+    jamMins,
+    trafficJamFee,
     subtotal,
     bookingFee: FARE_CONFIG.BOOKING_FEE,
     total,
@@ -75,24 +116,22 @@ export function calculateFare(distanceKm, durationMin) {
 
 export default function FareCalculator({ distanceKm, durationMin, onFareCalculated }) {
   const [expanded, setExpanded] = useState(false);
+  const [waitingMins, setWaitingMins] = useState(0);
   const [fare, setFare] = useState(null);
 
   useEffect(() => {
-    const result = calculateFare(Number(distanceKm), Number(durationMin));
+    const result = calculateFare(Number(distanceKm), Number(durationMin), Number(waitingMins));
     setFare(result);
     if (result) onFareCalculated?.(result.total);
-  }, [distanceKm, durationMin]);
+  }, [distanceKm, durationMin, waitingMins]);
 
   if (!distanceKm || !durationMin || !fare) return null;
-
-  const surgeExtra = fare.trafficMultiplier > 1
-    ? (fare.trafficMultiplier - 1) * (FARE_CONFIG.BASE_FARE + fare.distanceCost + fare.timeCost)
-    : 0;
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
       <Card className="border-primary/30 bg-primary/5">
         <CardContent className="p-4">
+
           {/* Header */}
           <div
             className="flex items-center justify-between cursor-pointer"
@@ -130,6 +169,28 @@ export default function FareCalculator({ distanceKm, durationMin, onFareCalculat
             </div>
           </div>
 
+          {/* Waiting time input — always visible for quick access */}
+          <div className="mt-3 flex items-center gap-3">
+            <Timer className="w-4 h-4 text-yellow-500 shrink-0" />
+            <Label className="text-xs text-muted-foreground whitespace-nowrap">
+              Waiting time (min)
+            </Label>
+            <Input
+              type="number"
+              min="0"
+              max="60"
+              value={waitingMins}
+              onChange={(e) => setWaitingMins(Math.max(0, Number(e.target.value)))}
+              className="h-7 w-20 text-xs"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <span className="text-xs text-muted-foreground">
+              {waitingMins <= FARE_CONFIG.WAITING_FREE_MINS
+                ? `Free (≤${FARE_CONFIG.WAITING_FREE_MINS} min grace)`
+                : `+₵${fare.waitingFee.toFixed(2)} waiting fee`}
+            </span>
+          </div>
+
           {/* Expandable Breakdown */}
           <AnimatePresence>
             {expanded && (
@@ -161,18 +222,48 @@ export default function FareCalculator({ distanceKm, durationMin, onFareCalculat
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Clock className="w-3.5 h-3.5" />
-                      <span>{Number(durationMin).toFixed(0)} min × ₵{FARE_CONFIG.COST_PER_MIN}/min</span>
+                      <span>{Number(durationMin).toFixed(0)} min × ₵{FARE_CONFIG.COST_PER_MIN_MOVING}/min</span>
                     </div>
                     <span>₵{fare.timeCost.toFixed(2)}</span>
                   </div>
 
-                  {fare.trafficMultiplier > 1 && (
+                  {fare.surgeExtra > 0 && (
                     <div className={cn("flex items-center justify-between", fare.trafficColor)}>
                       <div className="flex items-center gap-2">
                         <Zap className="w-3.5 h-3.5" />
                         <span>{fare.trafficIcon} {fare.trafficLabel} ({fare.trafficMultiplier}×)</span>
                       </div>
-                      <span>+₵{surgeExtra.toFixed(2)}</span>
+                      <span>+₵{fare.surgeExtra.toFixed(2)}</span>
+                    </div>
+                  )}
+
+                  {/* Waiting fee */}
+                  <div className={cn(
+                    "flex items-center justify-between",
+                    fare.billableWaitMins > 0 ? "text-yellow-600" : "text-muted-foreground"
+                  )}>
+                    <div className="flex items-center gap-2">
+                      <Timer className="w-3.5 h-3.5" />
+                      <span>
+                        Waiting fee
+                        {fare.waitingMins > 0 && fare.billableWaitMins === 0
+                          ? ` (${fare.waitingMins} min — within free grace)`
+                          : fare.billableWaitMins > 0
+                            ? ` (${fare.billableWaitMins} min × ₵${FARE_CONFIG.WAITING_FEE_PER_MIN}/min)`
+                            : " (3 min free)"}
+                      </span>
+                    </div>
+                    <span>{fare.waitingFee > 0 ? `+₵${fare.waitingFee.toFixed(2)}` : "Free"}</span>
+                  </div>
+
+                  {/* Traffic jam fee */}
+                  {fare.jamMins > 0 && (
+                    <div className="flex items-center justify-between text-orange-500">
+                      <div className="flex items-center gap-2">
+                        <CarFront className="w-3.5 h-3.5" />
+                        <span>Traffic congestion ({fare.jamMins} min × ₵{FARE_CONFIG.TRAFFIC_JAM_FEE_PER_MIN}/min)</span>
+                      </div>
+                      <span>+₵{fare.trafficJamFee.toFixed(2)}</span>
                     </div>
                   )}
 
@@ -203,14 +294,30 @@ export default function FareCalculator({ distanceKm, durationMin, onFareCalculat
                     <span className="text-primary">₵{fare.total.toFixed(2)}</span>
                   </div>
 
-                  <div className="flex items-start gap-2 mt-3 p-2.5 rounded-lg bg-muted/60 text-xs text-muted-foreground">
-                    <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                    <span>
-                      Pricing modelled on Uber/Bolt Ghana rates (GH₵). Final fare may vary between{" "}
-                      <strong>₵{fare.minFare.toFixed(2)}</strong> – <strong>₵{fare.maxFare.toFixed(2)}</strong>{" "}
-                      based on actual route and real-time traffic. 15% HY3N commission deducted from driver payout.
-                    </span>
+                  {/* Info box */}
+                  <div className="space-y-1.5 mt-3">
+                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-xs text-yellow-700">
+                      <Timer className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                      <span>
+                        <strong>Waiting fee:</strong> First {FARE_CONFIG.WAITING_FREE_MINS} min free, then ₵{FARE_CONFIG.WAITING_FEE_PER_MIN}/min — same as Bolt Ghana.
+                      </span>
+                    </div>
+                    {fare.jamMins > 0 && (
+                      <div className="flex items-start gap-2 p-2.5 rounded-lg bg-orange-500/10 border border-orange-500/20 text-xs text-orange-700">
+                        <CarFront className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                        <span>
+                          <strong>Traffic congestion fee:</strong> ₵{FARE_CONFIG.TRAFFIC_JAM_FEE_PER_MIN}/min when stuck in heavy traffic — same as Bolt Ghana policy.
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-muted/60 text-xs text-muted-foreground">
+                      <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                      <span>
+                        Final fare may vary ₵{fare.minFare.toFixed(2)} – ₵{fare.maxFare.toFixed(2)}. 15% HY3N commission deducted from driver payout.
+                      </span>
+                    </div>
                   </div>
+
                 </div>
               </motion.div>
             )}
