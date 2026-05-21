@@ -76,12 +76,12 @@ const AuthenticatedApp = () => {
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/schedule" element={<Schedule />} />
               <Route path="/shifts" element={<Shifts />} />
-              <Route path="/driver-app" element={<DriverApp />} />
-              <Route path="/earnings" element={<DriverEarningsDashboard />} />
               <Route path="/found-items" element={<FoundItems />} />
               <Route path="/safety-alerts" element={<SafetyAlerts />} />
               <Route path="/commission" element={<CommissionTracking />} />
+              <Route path="/earnings" element={<DriverEarningsDashboard />} />
             </Route>
+            <Route path="/driver-app" element={<DriverApp />} />
             <Route path="/driver-register" element={<DriverRegister />} />
             <Route path="*" element={<PageNotFound />} />
           </Routes>
