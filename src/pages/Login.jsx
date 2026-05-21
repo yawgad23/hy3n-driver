@@ -47,7 +47,7 @@ export default function Login() {
         localStorage.removeItem("driver_remember_password");
       }
       
-      window.location.href = "/";
+      window.location.href = "/dashboard";
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {
@@ -67,7 +67,7 @@ export default function Login() {
     setLoading(true);
     try {
       await base44.auth.loginViaEmailPassword(savedEmail, savedPassword);
-      window.location.href = "/";
+      window.location.href = "/dashboard";
     } catch (err) {
       setError("Biometric login failed. Please login normally.");
       localStorage.removeItem("driver_remember_email");
@@ -78,7 +78,7 @@ export default function Login() {
   };
 
   const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", "/");
+    base44.auth.loginWithProvider("google", "/dashboard");
   };
 
   return (
