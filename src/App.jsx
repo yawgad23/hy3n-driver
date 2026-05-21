@@ -28,6 +28,7 @@ import DriverRegister from './pages/DriverRegister';
 import FoundItems from './pages/FoundItems';
 import SafetyAlerts from './pages/SafetyAlerts';
 import CommissionTracking from './pages/CommissionTracking';
+import SplashScreen from './pages/SplashScreen';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, isAuthenticated } = useAuth();
@@ -70,6 +71,7 @@ const AuthenticatedApp = () => {
           style={{ width: "100%", minHeight: "100vh" }}
         >
           <Routes location={location}>
+            <Route path="/" element={<SplashScreen />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -77,7 +79,7 @@ const AuthenticatedApp = () => {
             <Route path="/driver-register" element={<DriverRegister />} />
             <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
             <Route element={<AppLayout />}>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/drivers" element={<Drivers />} />
               <Route path="/drivers/:id" element={<DriverDetails />} />
