@@ -44,7 +44,7 @@ const AuthenticatedApp = () => {
 
   // Role-based redirect: non-admin users → driver app
   if (isAuthenticated && user && user.role !== 'admin') {
-    const isDriverRoute = location.pathname.startsWith('/driver') || location.pathname === '/earnings';
+    const isDriverRoute = location.pathname.startsWith('/driver-') || location.pathname === '/earnings';
     if (!isDriverRoute) {
       return <Navigate to="/driver-app" replace />;
     }
