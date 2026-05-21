@@ -9,6 +9,10 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { TabStateProvider } from './lib/TabStateContext';
 
 import AppLayout from './components/layout/AppLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import Drivers from './pages/Drivers';
 import Trips from './pages/Trips';
@@ -66,6 +70,12 @@ const AuthenticatedApp = () => {
           style={{ width: "100%", minHeight: "100vh" }}
         >
           <Routes location={location}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/driver-app" element={<DriverApp />} />
+            <Route path="/driver-register" element={<DriverRegister />} />
+            <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
             <Route element={<AppLayout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/drivers" element={<Drivers />} />
@@ -81,8 +91,7 @@ const AuthenticatedApp = () => {
               <Route path="/commission" element={<CommissionTracking />} />
               <Route path="/earnings" element={<DriverEarningsDashboard />} />
             </Route>
-            <Route path="/driver-app" element={<DriverApp />} />
-            <Route path="/driver-register" element={<DriverRegister />} />
+            </Route>
             <Route path="*" element={<PageNotFound />} />
           </Routes>
         </motion.div>
