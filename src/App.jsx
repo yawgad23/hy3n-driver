@@ -10,6 +10,7 @@ import { TabStateProvider } from './lib/TabStateContext';
 
 import AppLayout from './components/layout/AppLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import AdminRoute from '@/components/AdminRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -78,6 +79,7 @@ const AuthenticatedApp = () => {
             <Route path="/driver-app" element={<DriverApp />} />
             <Route path="/driver-register" element={<DriverRegister />} />
             <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+            <Route element={<AdminRoute />}>
             <Route element={<AppLayout />}>
 
               <Route path="/dashboard" element={<Dashboard />} />
@@ -92,8 +94,11 @@ const AuthenticatedApp = () => {
               <Route path="/found-items" element={<FoundItems />} />
               <Route path="/safety-alerts" element={<SafetyAlerts />} />
               <Route path="/commission" element={<CommissionTracking />} />
-              <Route path="/earnings" element={<DriverEarningsDashboard />} />
             </Route>
+            </Route>
+            </Route>
+            <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+              <Route path="/earnings" element={<DriverEarningsDashboard />} />
             </Route>
             <Route path="*" element={<PageNotFound />} />
           </Routes>
