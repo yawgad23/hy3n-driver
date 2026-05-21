@@ -23,6 +23,7 @@ import DriverEarningsDashboard from './pages/DriverEarningsDashboard';
 import DriverRegister from './pages/DriverRegister';
 import FoundItems from './pages/FoundItems';
 import SafetyAlerts from './pages/SafetyAlerts';
+import CommissionTracking from './pages/CommissionTracking';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -71,6 +72,7 @@ const AuthenticatedApp = () => {
               <Route path="/earnings" element={<DriverEarningsDashboard />} />
               <Route path="/found-items" element={<FoundItems />} />
               <Route path="/safety-alerts" element={<SafetyAlerts />} />
+              <Route path="/commission" element={<CommissionTracking />} />
             </Route>
             <Route path="/driver-register" element={<DriverRegister />} />
             <Route path="*" element={<PageNotFound />} />

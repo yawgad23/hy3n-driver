@@ -1,0 +1,87 @@
+{
+  "name": "CommissionRecord",
+  "type": "object",
+  "properties": {
+    "driver_id": {
+      "type": "string",
+      "description": "Reference to the driver"
+    },
+    "driver_name": {
+      "type": "string",
+      "description": "Driver name for display"
+    },
+    "driver_phone": {
+      "type": "string",
+      "description": "Driver phone number"
+    },
+    "week_label": {
+      "type": "string",
+      "description": "Week label e.g. 'Week of May 19, 2026'"
+    },
+    "week_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Week start date"
+    },
+    "week_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Week end date"
+    },
+    "total_fare": {
+      "type": "number",
+      "description": "Total fare earned that week"
+    },
+    "commission_rate": {
+      "type": "number",
+      "default": 0.2,
+      "description": "Commission rate (e.g. 0.2 = 20%)"
+    },
+    "commission_amount": {
+      "type": "number",
+      "description": "Amount owed to HY3N"
+    },
+    "driver_earnings": {
+      "type": "number",
+      "description": "Driver's net earnings after commission"
+    },
+    "trip_count": {
+      "type": "number",
+      "description": "Number of trips that week"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid",
+        "overdue",
+        "disputed"
+      ],
+      "default": "pending",
+      "description": "Payment status"
+    },
+    "payment_method": {
+      "type": "string",
+      "description": "How they paid e.g. MoMo"
+    },
+    "payment_reference": {
+      "type": "string",
+      "description": "MoMo transaction reference"
+    },
+    "paid_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When payment was confirmed"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes"
+    }
+  },
+  "required": [
+    "driver_name",
+    "week_label",
+    "commission_amount",
+    "status"
+  ]
+}

@@ -18,6 +18,7 @@ import SafetyReportDialog from "./SafetyReportDialog";
 import DriverTripMap from "./DriverTripMap";
 import DriverStatusBar from "./DriverStatusBar";
 import DriverEarningsSnapshot from "./DriverEarningsSnapshot";
+import DriverCommissionPanel from "./DriverCommissionPanel";
 import MultiStopPanel from "./MultiStopPanel";
 import { optimizeStops } from "@/hooks/useMultiStopOptimizer";
 import { toast } from "sonner";
@@ -195,6 +196,11 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
         <DriverEarningsSnapshot driver={driver} todayTrips={myTrips} />
       )}
 
+      {/* Commission panel */}
+      {!currentTrip && (
+        <DriverCommissionPanel driver={driver} />
+      )}
+
       {/* Multi-Stop Optimizer Panel */}
       {isMultiStopMode && optimizedStops.length > 0 && (
         <MultiStopPanel
@@ -333,7 +339,7 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
                       <XCircle className="w-4 h-4 mr-2" /> Cancel
                     </Button>
                     <Button className="bg-accent hover:bg-accent/90" onClick={handleCompleteTrip}>
-                      <CheckCircle className="w-4 h-4 mr-2" /> Complete & Rate
+                      <CheckCircle className="w-4 h-4 mr-2" /> Complete &amp; Rate
                     </Button>
                   </div>
                 )}
