@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { LogIn, Mail, Lock, Loader2, Fingerprint } from "lucide-react";
+import { LogIn, Mail, Lock, Loader2, Fingerprint, UserPlus } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 
@@ -211,6 +211,16 @@ export default function Login() {
           )}
         </Button>
       </form>
+
+      <div className="mt-6 pt-6 border-t border-border">
+        <p className="text-center text-sm text-muted-foreground mb-3">New driver? Join the fleet</p>
+        <Button variant="outline" className="w-full h-12 font-medium" asChild>
+          <Link to="/driver-register">
+            <UserPlus className="w-4 h-4 mr-2" />
+            Register as a Driver
+          </Link>
+        </Button>
+      </div>
     </AuthLayout>
   );
 }
