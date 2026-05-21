@@ -78,7 +78,7 @@ export default function DriverApp() {
               Sign In
             </Link>
           </Button>
-          <AddDriverProfileDialog />
+
         </div>
       </div>
     );
