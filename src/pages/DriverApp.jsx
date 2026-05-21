@@ -5,14 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
-import { Car, UserPlus, LogIn, Home, Clock, User, Settings, BarChart2 } from "lucide-react";
+import { Car, LogIn, Home, Clock, User, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import SplashScreen from "@/components/driver/SplashScreen";
 import DriverHomeTab from "@/components/driver/DriverHomeTab";
 import TripHistoryTab from "@/components/driver/TripHistoryTab";
 import DriverProfileTab from "@/components/driver/DriverProfileTab";
 import DriverPreferences from "@/components/driver/DriverPreferences";
-import AddDriverProfileDialog from "@/components/driver/AddDriverProfileDialog";
+
 import { cn } from "@/lib/utils";
 
 const TABS = [
@@ -30,7 +30,9 @@ export default function DriverApp() {
   const { data: driver, isLoading } = useQuery({
     queryKey: ["driver-profile"],
     queryFn: async () => {
-      const drivers = await base44.entities.Driver.filter({});
+      const user = await base44.auth.me();
+      if (!user) return null;
+      const drivers = await base44.entities.Driver.filter({ email: user.email });
       return drivers[0] || null;
     },
   });
@@ -62,23 +64,17 @@ export default function DriverApp() {
           </div>
           <h1 className="font-heading text-3xl font-bold mb-2">Hy3N Driver</h1>
           <p className="text-muted-foreground text-sm mb-8">
-            Your professional rideshare partner
+            Your account is not yet registered as a driver.
+            Please contact your administrator to be added to the platform.
           </p>
         </div>
         <div className="space-y-3">
-          <Button className="w-full h-12" asChild>
-            <Link to="/driver-register">
-              <UserPlus className="w-5 h-5 mr-2" />
-              Register as a Driver
-            </Link>
-          </Button>
           <Button className="w-full h-12" variant="outline" asChild>
             <Link to="/login">
               <LogIn className="w-5 h-5 mr-2" />
-              Sign In
+              Sign In with a Different Account
             </Link>
           </Button>
-
         </div>
       </div>
     );
