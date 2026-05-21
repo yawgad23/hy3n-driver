@@ -47,7 +47,7 @@ export default function SplashScreen() {
             HY3N DRIVER
           </h1>
           <p className="text-muted-foreground text-sm mt-2 font-body">
-            Fleet Management Platform
+            Powered by YawGad Business Centre
           </p>
         </motion.div>
       </motion.div>
