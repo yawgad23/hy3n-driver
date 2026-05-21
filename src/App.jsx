@@ -77,7 +77,8 @@ const AuthenticatedApp = () => {
             <Route path="/driver-register" element={<DriverRegister />} />
             <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
             <Route element={<AppLayout />}>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/drivers" element={<Drivers />} />
               <Route path="/drivers/:id" element={<DriverDetails />} />
               <Route path="/trips" element={<Trips />} />

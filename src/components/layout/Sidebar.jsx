@@ -4,7 +4,7 @@ import { LayoutDashboard, Users, MapPin, Map, BarChart3, Calendar, Clock, Smartp
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Dashboard", path: "/", icon: LayoutDashboard },
+  { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Drivers", path: "/drivers", icon: Users },
   { label: "Trips", path: "/trips", icon: MapPin },
   { label: "Map", path: "/map", icon: Map },
