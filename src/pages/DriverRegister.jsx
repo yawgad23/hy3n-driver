@@ -48,10 +48,12 @@ export default function DriverRegister() {
     setLoading(true);
     try {
       const result = await base44.auth.verifyOtp({ email, otpCode });
-      if (result?.access_token) {
-        setAccessToken(result.access_token);
-        setStep(3);
+      const token = result?.access_token || result?.data?.access_token;
+      if (token) {
+        base44.auth.setToken(token);
+        setAccessToken(token);
       }
+      setStep(3);
     } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {
@@ -87,7 +89,6 @@ export default function DriverRegister() {
     }
     setLoading(true);
     try {
-      if (accessToken) base44.auth.setToken(accessToken);
       const [ghanaCardUrl, licensePhotoUrl, vehiclePhotoUrl] = await Promise.all([
         uploadFile(ghanaCardFile),
         uploadFile(licensePhotoFile),
