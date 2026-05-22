@@ -8,32 +8,17 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { TabStateProvider } from './lib/TabStateContext';
 
-import AppLayout from './components/layout/AppLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import AdminRoute from '@/components/AdminRoute';
+import SplashScreen from './pages/SplashScreen';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
-import Dashboard from './pages/Dashboard';
-import Drivers from './pages/Drivers';
-import Trips from './pages/Trips';
-import DriverDetails from './pages/DriverDetails';
-import TripDetails from './pages/TripDetails';
-import MapDashboard from './pages/MapDashboard';
-import Analytics from './pages/Analytics';
-import Schedule from './pages/Schedule';
-import Shifts from './pages/Shifts';
 import DriverApp from './pages/DriverApp';
-import DriverEarningsDashboard from './pages/DriverEarningsDashboard';
 import DriverRegister from './pages/DriverRegister';
-import FoundItems from './pages/FoundItems';
-import SafetyAlerts from './pages/SafetyAlerts';
-import CommissionTracking from './pages/CommissionTracking';
-import DriverApplications from './pages/DriverApplications';
-import SplashScreen from './pages/SplashScreen';
+import DriverEarningsDashboard from './pages/DriverEarningsDashboard';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, isAuthenticated } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const location = useLocation();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -42,14 +27,6 @@ const AuthenticatedApp = () => {
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
       </div>
     );
-  }
-
-  // Role-based redirect: non-admin users → driver app
-  if (isAuthenticated && user && user.role !== 'admin') {
-    const isDriverRoute = location.pathname.startsWith('/driver-') || location.pathname === '/earnings';
-    if (!isDriverRoute) {
-      return <Navigate to="/driver-app" replace />;
-    }
   }
 
   if (authError) {
@@ -79,26 +56,6 @@ const AuthenticatedApp = () => {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/driver-app" element={<DriverApp />} />
             <Route path="/driver-register" element={<DriverRegister />} />
-            <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-            <Route element={<AdminRoute />}>
-            <Route element={<AppLayout />}>
-
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/drivers" element={<Drivers />} />
-              <Route path="/drivers/:id" element={<DriverDetails />} />
-              <Route path="/trips" element={<Trips />} />
-              <Route path="/trips/:id" element={<TripDetails />} />
-              <Route path="/map" element={<MapDashboard />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/schedule" element={<Schedule />} />
-              <Route path="/shifts" element={<Shifts />} />
-              <Route path="/found-items" element={<FoundItems />} />
-              <Route path="/safety-alerts" element={<SafetyAlerts />} />
-              <Route path="/commission" element={<CommissionTracking />} />
-              <Route path="/driver-applications" element={<DriverApplications />} />
-            </Route>
-            </Route>
-            </Route>
             <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
               <Route path="/earnings" element={<DriverEarningsDashboard />} />
             </Route>
