@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,16 @@ export default function DriverRegister() {
   const [vehiclePhotoFile, setVehiclePhotoFile] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // If already logged in, skip account creation steps
+  useEffect(() => {
+    base44.auth.me().then(user => {
+      if (user) {
+        setEmail(user.email || "");
+        setStep(3);
+      }
+    }).catch(() => {});
+  }, []);
 
   const handleAccountSubmit = async (e) => {
     e.preventDefault();
