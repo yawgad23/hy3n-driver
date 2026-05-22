@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Banknote } from "lucide-react";
+import { Banknote, ClipboardList } from "lucide-react";
 import { LayoutDashboard, Users, MapPin, Map, BarChart3, Calendar, Clock, Smartphone, Wallet, Package, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,7 @@ const navItems = [
   { label: "Earnings", path: "/earnings", icon: Wallet },
   { label: "Safety Alerts", path: "/safety-alerts", icon: ShieldAlert },
   { label: "Commission", path: "/commission", icon: Banknote },
+  { label: "Applications", path: "/driver-applications", icon: ClipboardList },
 ];
 
 export default function Sidebar() {

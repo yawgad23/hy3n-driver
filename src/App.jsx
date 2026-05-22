@@ -29,6 +29,7 @@ import DriverRegister from './pages/DriverRegister';
 import FoundItems from './pages/FoundItems';
 import SafetyAlerts from './pages/SafetyAlerts';
 import CommissionTracking from './pages/CommissionTracking';
+import DriverApplications from './pages/DriverApplications';
 import SplashScreen from './pages/SplashScreen';
 
 const AuthenticatedApp = () => {
@@ -94,6 +95,7 @@ const AuthenticatedApp = () => {
               <Route path="/found-items" element={<FoundItems />} />
               <Route path="/safety-alerts" element={<SafetyAlerts />} />
               <Route path="/commission" element={<CommissionTracking />} />
+              <Route path="/driver-applications" element={<DriverApplications />} />
             </Route>
             </Route>
             </Route>

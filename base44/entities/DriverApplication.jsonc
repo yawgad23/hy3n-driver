@@ -1,0 +1,75 @@
+{
+  "name": "DriverApplication",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "Applicant's full name"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address"
+    },
+    "vehicle_model": {
+      "type": "string",
+      "description": "Vehicle make and model"
+    },
+    "vehicle_plate": {
+      "type": "string",
+      "description": "License plate number"
+    },
+    "license_number": {
+      "type": "string",
+      "description": "Driver's license number"
+    },
+    "ghana_card_url": {
+      "type": "string",
+      "description": "Ghana Card / National ID photo URL"
+    },
+    "license_photo_url": {
+      "type": "string",
+      "description": "Driver's license photo URL"
+    },
+    "vehicle_photo_url": {
+      "type": "string",
+      "description": "Vehicle photo URL"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Application status"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Reason for rejection"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Admin who reviewed"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When reviewed"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes"
+    }
+  },
+  "required": [
+    "full_name",
+    "phone",
+    "email",
+    "status"
+  ]
+}
