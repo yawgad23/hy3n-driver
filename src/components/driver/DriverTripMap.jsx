@@ -74,18 +74,42 @@ function RecenterButton({ position }) {
   );
 }
 
+async function geocode(address) {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`,
+      { headers: { "Accept-Language": "en" } }
+    );
+    const data = await res.json();
+    if (data[0]) return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+  } catch {}
+  return null;
+}
+
 export default function DriverTripMap({ trip, phase }) {
   const [driverPos, setDriverPos] = useState(null);
   const [riderPos, setRiderPos] = useState(null);
+  const [resolvedPickup, setResolvedPickup] = useState(null);
+  const [resolvedDropoff, setResolvedDropoff] = useState(null);
   const watchIdRef = useRef(null);
 
   const pickupPos = trip?.pickup_lat && trip?.pickup_lng
     ? [trip.pickup_lat, trip.pickup_lng]
-    : null;
+    : resolvedPickup;
 
   const dropoffPos = trip?.dropoff_lat && trip?.dropoff_lng
     ? [trip.dropoff_lat, trip.dropoff_lng]
-    : null;
+    : resolvedDropoff;
+
+  // Geocode addresses when coordinates aren't stored
+  useEffect(() => {
+    if (trip?.pickup_location && !trip?.pickup_lat) {
+      geocode(trip.pickup_location).then(pos => pos && setResolvedPickup(pos));
+    }
+    if (trip?.dropoff_location && !trip?.dropoff_lat) {
+      geocode(trip.dropoff_location).then(pos => pos && setResolvedDropoff(pos));
+    }
+  }, [trip?.id]);
 
   // Get driver's real GPS position
   useEffect(() => {
