@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Car, Mail, Lock, Loader2, Phone, User, FileText, Upload, CheckCircle, Clock } from "lucide-react";
+import { Car, Mail, Lock, Loader2, Phone, User, FileText, Upload, CheckCircle, Clock, MapPin } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
@@ -18,6 +18,7 @@ export default function DriverRegister() {
   const [otpCode, setOtpCode] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [vehicleModel, setVehicleModel] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
   const [licenseNumber, setLicenseNumber] = useState("");
@@ -25,6 +26,8 @@ export default function DriverRegister() {
   const [ghanaCardFile, setGhanaCardFile] = useState(null);
   const [licensePhotoFile, setLicensePhotoFile] = useState(null);
   const [vehiclePhotoFile, setVehiclePhotoFile] = useState(null);
+  const [insurancePhotoFile, setInsurancePhotoFile] = useState(null);
+  const [roadworthyPhotoFile, setRoadworthyPhotoFile] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -93,28 +96,33 @@ export default function DriverRegister() {
   const handleApplicationSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (!ghanaCardFile || !licensePhotoFile || !vehiclePhotoFile) {
+    if (!ghanaCardFile || !licensePhotoFile || !vehiclePhotoFile || !insurancePhotoFile || !roadworthyPhotoFile) {
       setError("Please upload all required documents");
       return;
     }
     setLoading(true);
     try {
-      const [ghanaCardUrl, licensePhotoUrl, vehiclePhotoUrl] = await Promise.all([
+      const [ghanaCardUrl, licensePhotoUrl, vehiclePhotoUrl, insurancePhotoUrl, roadworthyPhotoUrl] = await Promise.all([
         uploadFile(ghanaCardFile),
         uploadFile(licensePhotoFile),
         uploadFile(vehiclePhotoFile),
+        uploadFile(insurancePhotoFile),
+        uploadFile(roadworthyPhotoFile),
       ]);
 
       await base44.entities.DriverApplication.create({
         full_name: fullName,
         phone,
         email,
+        address,
         vehicle_model: vehicleModel,
         vehicle_plate: vehiclePlate,
         license_number: licenseNumber,
         ghana_card_url: ghanaCardUrl,
         license_photo_url: licensePhotoUrl,
         vehicle_photo_url: vehiclePhotoUrl,
+        insurance_photo_url: insurancePhotoUrl,
+        roadworthy_photo_url: roadworthyPhotoUrl,
         status: "pending",
       });
 
@@ -186,6 +194,8 @@ export default function DriverRegister() {
           <FileUploadField label="Ghana Card / National ID *" file={ghanaCardFile} setFile={setGhanaCardFile} fieldId="ghana-card" />
           <FileUploadField label="Driver's License Photo *" file={licensePhotoFile} setFile={setLicensePhotoFile} fieldId="license-photo" />
           <FileUploadField label="Vehicle Photo *" file={vehiclePhotoFile} setFile={setVehiclePhotoFile} fieldId="vehicle-photo" />
+          <FileUploadField label="Vehicle Insurance Certificate *" file={insurancePhotoFile} setFile={setInsurancePhotoFile} fieldId="insurance-photo" />
+          <FileUploadField label="Road Worthy Certificate *" file={roadworthyPhotoFile} setFile={setRoadworthyPhotoFile} fieldId="roadworthy-photo" />
           <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
             {loading ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Uploading...</>
@@ -210,6 +220,13 @@ export default function DriverRegister() {
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input placeholder="John Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} className="pl-10 h-12" required />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Residential Address</Label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Your home address" value={address} onChange={(e) => setAddress(e.target.value)} className="pl-10 h-12" required />
             </div>
           </div>
           <div className="space-y-2">

@@ -14,6 +14,10 @@
       "type": "string",
       "description": "Email address"
     },
+    "address": {
+      "type": "string",
+      "description": "Residential address"
+    },
     "vehicle_model": {
       "type": "string",
       "description": "Vehicle make and model"
@@ -37,6 +41,14 @@
     "vehicle_photo_url": {
       "type": "string",
       "description": "Vehicle photo URL"
+    },
+    "insurance_photo_url": {
+      "type": "string",
+      "description": "Vehicle insurance certificate photo URL"
+    },
+    "roadworthy_photo_url": {
+      "type": "string",
+      "description": "Road worthy certificate photo URL"
     },
     "status": {
       "type": "string",
