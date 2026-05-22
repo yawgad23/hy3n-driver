@@ -64,11 +64,17 @@ export default function DriverApp() {
           </div>
           <h1 className="font-heading text-3xl font-bold mb-2">Hy3N Driver</h1>
           <p className="text-muted-foreground text-sm mb-8">
-            Your account is not yet registered as a driver.
-            Please contact your administrator to be added to the platform.
+            Your account is not yet linked to a driver profile.
+            Register as a driver to get started.
           </p>
         </div>
         <div className="space-y-3">
+          <Button className="w-full h-12" asChild>
+            <Link to="/driver-register">
+              <Car className="w-5 h-5 mr-2" />
+              Register as a Driver
+            </Link>
+          </Button>
           <Button className="w-full h-12" variant="outline" asChild>
             <Link to="/login">
               <LogIn className="w-5 h-5 mr-2" />
