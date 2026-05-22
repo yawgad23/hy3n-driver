@@ -21,6 +21,7 @@ export default function DriverRegister() {
   const [vehicleModel, setVehicleModel] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
   const [licenseNumber, setLicenseNumber] = useState("");
+  const [accessToken, setAccessToken] = useState(null);
   const [ghanaCardFile, setGhanaCardFile] = useState(null);
   const [licensePhotoFile, setLicensePhotoFile] = useState(null);
   const [vehiclePhotoFile, setVehiclePhotoFile] = useState(null);
@@ -48,7 +49,7 @@ export default function DriverRegister() {
     try {
       const result = await base44.auth.verifyOtp({ email, otpCode });
       if (result?.access_token) {
-        base44.auth.setToken(result.access_token);
+        setAccessToken(result.access_token);
         setStep(3);
       }
     } catch (err) {
@@ -86,6 +87,7 @@ export default function DriverRegister() {
     }
     setLoading(true);
     try {
+      if (accessToken) base44.auth.setToken(accessToken);
       const [ghanaCardUrl, licensePhotoUrl, vehiclePhotoUrl] = await Promise.all([
         uploadFile(ghanaCardFile),
         uploadFile(licensePhotoFile),
