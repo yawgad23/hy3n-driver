@@ -91,7 +91,7 @@ export default function Login() {
           Don't have an account?{" "}
           <div className="flex flex-col gap-1 mt-2">
             <Link to="/register" className="text-primary font-medium hover:underline">
-              Sign up (Admin)
+              
             </Link>
             <Link to="/driver-register" className="text-accent font-medium hover:underline">
               Become a driver
