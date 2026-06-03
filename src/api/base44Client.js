@@ -503,42 +503,45 @@ const authAPI = {
 };
 
 // ─── Functions API ────────────────────────────────────────────────────────────
-// base44.functions.invoke(name, params) → calls a Firebase Cloud Function
-// Since Cloud Functions are not yet deployed, these are stub implementations
-// that return sensible defaults or throw informative errors.
+// base44.functions.invoke(name, params) → calls a deployed Firebase Cloud Function
+const FUNCTIONS_BASE_URL = 'https://us-central1-hy3n26.cloudfunctions.net';
 
-const FUNCTIONS_STUBS = {
+// Local overrides for functions that don't need a backend call
+const FUNCTIONS_LOCAL = {
   getGoogleMapsKey: async () => ({ data: { key: import.meta.env.VITE_GOOGLE_MAPS_KEY || '' } }),
-  getSurgePricing: async () => ({ data: { multiplier: 1.0, active: false } }),
   generateInviteCode: async () => ({ data: { code: Math.random().toString(36).slice(2, 8).toUpperCase() } }),
-  placesAutocomplete: async ({ query }) => ({ data: { predictions: [] } }),
-  placeDetails: async ({ placeId }) => ({ data: null }),
-  calculateDistance: async ({ origin, destination }) => ({ data: { distance_km: 0, duration_min: 0 } }),
-  getNearbyDrivers: async () => ({ data: { drivers: [] } }),
-  suggestNearestDriver: async () => ({ data: null }),
-  handleTripResponse: async () => ({ data: { success: true } }),
-  submitRideReport: async () => ({ data: { success: true } }),
-  getGoogleMapsRoute: async () => ({ data: { route: null } }),
-  processMoMoPayment: async () => ({ data: { success: false, message: 'MoMo payments require backend integration' } }),
-  processCardPayment: async () => ({ data: { success: false, message: 'Card payments require backend integration' } }),
-  processMoMoWithdrawal: async () => ({ data: { success: false, message: 'Withdrawals require backend integration' } }),
-  sendPhoneLoginOtp: async () => ({ data: { success: true } }),
-  verifyPhoneLoginOtp: async () => ({ data: { success: false, message: 'Phone OTP requires backend integration' } }),
-  getLoginChallenge: async () => ({ data: { challenge: [] } }),
-  generateBiometricKey: async () => ({ data: { success: true } }),
-  verifyBiometricKey: async () => ({ data: { success: false } }),
-  verifyBiometricLogin: async () => ({ data: { success: false } }),
-  getVapidPublicKey: async () => ({ data: { key: '' } }),
-  triggerSOS: async () => ({ data: { success: true } }),
 };
 
 const functionsAPI = {
   async invoke(name, params = {}) {
-    if (FUNCTIONS_STUBS[name]) {
-      return FUNCTIONS_STUBS[name](params);
+    // Use local override if defined
+    if (FUNCTIONS_LOCAL[name]) {
+      return FUNCTIONS_LOCAL[name](params);
     }
-    console.warn(`[Firebase] functions.invoke("${name}") — no stub defined`);
-    return { data: null };
+    // Call the deployed Firebase Cloud Function
+    try {
+      const user = auth.currentUser;
+      const headers = { 'Content-Type': 'application/json' };
+      if (user) {
+        const token = await user.getIdToken();
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch(`${FUNCTIONS_BASE_URL}/${name}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(params),
+      });
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error(`[Firebase] Function ${name} returned ${response.status}:`, errText);
+        return { data: null, error: errText };
+      }
+      const data = await response.json();
+      return { data };
+    } catch (err) {
+      console.error(`[Firebase] functions.invoke("${name}") error:`, err);
+      return { data: null, error: err.message };
+    }
   },
 };
 
