@@ -551,14 +551,24 @@ const integrationsAPI = {
      * base44 signature: UploadFile({ file }) → { file_url }
      */
     async UploadFile({ file }) {
-      const user = auth.currentUser;
-      const userId = user ? user.uid : 'anonymous';
-      const timestamp = Date.now();
-      const fileName = `uploads/${userId}/${timestamp}_${file.name}`;
-      const storageRef = ref(storage, fileName);
-      await uploadBytes(storageRef, file);
-      const file_url = await getDownloadURL(storageRef);
-      return { file_url };
+      try {
+        const user = auth.currentUser;
+        const userId = user ? user.uid : 'anonymous';
+        const timestamp = Date.now();
+        const fileName = `uploads/${userId}/${timestamp}_${file.name}`;
+        const storageRef = ref(storage, fileName);
+        await uploadBytes(storageRef, file);
+        const file_url = await getDownloadURL(storageRef);
+        return { file_url };
+      } catch (err) {
+        // Firebase Storage requires Blaze plan. Gracefully degrade on Spark plan.
+        const msg = err?.message || '';
+        if (err?.code === 'storage/unknown' || msg.includes('billing') || msg.includes('quota')) {
+          console.warn('[Firebase] Storage requires Blaze plan upgrade. File upload skipped.');
+          return { file_url: null };
+        }
+        throw err;
+      }
     },
 
     /**
