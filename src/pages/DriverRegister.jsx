@@ -192,21 +192,24 @@ export default function DriverRegister() {
     );
   }
 
-  // Step 4: Document Upload (optional)
+  // Step 4: Document Upload (required)
   if (step === 4) {
+    const canSubmit = ghanaCardFile && licensePhotoFile && vehiclePhotoFile && insurancePhotoFile && roadworthyPhotoFile;
     return (
-      <AuthLayout icon={Upload} title="Upload Documents" subtitle="Optional — you can skip and upload later from your profile">
+      <AuthLayout icon={Upload} title="Upload Documents" subtitle="We need to verify your identity and vehicle">
         {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
         <form onSubmit={handleApplicationSubmit} className="space-y-4">
-          <p className="text-xs text-muted-foreground bg-muted rounded-lg px-3 py-2">
-            All documents are <strong>optional</strong> at this stage. You can upload them later from your profile. Your account will be reviewed by an admin before you can go online.
-          </p>
+          {!canSubmit && (
+            <p className="text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2 font-medium">
+              Please upload all required documents
+            </p>
+          )}
           <FileUploadField label="Ghana Card / National ID" file={ghanaCardFile} setFile={setGhanaCardFile} fieldId="ghana-card" />
           <FileUploadField label="Driver's License Photo" file={licensePhotoFile} setFile={setLicensePhotoFile} fieldId="license-photo" />
           <FileUploadField label="Vehicle Photo" file={vehiclePhotoFile} setFile={setVehiclePhotoFile} fieldId="vehicle-photo" />
           <FileUploadField label="Vehicle Insurance Certificate" file={insurancePhotoFile} setFile={setInsurancePhotoFile} fieldId="insurance-photo" />
           <FileUploadField label="Road Worthy Certificate" file={roadworthyPhotoFile} setFile={setRoadworthyPhotoFile} fieldId="roadworthy-photo" />
-          <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+          <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !canSubmit}>
             {loading ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</>
             ) : (
