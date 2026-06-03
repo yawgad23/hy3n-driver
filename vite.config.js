@@ -13,4 +13,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    allowedHosts: 'all',
+    host: '0.0.0.0',
+  },
 })
