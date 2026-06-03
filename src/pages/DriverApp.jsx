@@ -32,7 +32,7 @@ export default function DriverApp() {
     queryFn: async () => {
       const user = await base44.auth.me();
       if (!user) return null;
-      const profiles = await base44.entities.Driver.filter({ email: user.email });
+      const profiles = await base44.entities.DriverProfile.filter({ email: user.email });
       return profiles[0] || null;
     },
   });

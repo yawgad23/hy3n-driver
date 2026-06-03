@@ -23,7 +23,7 @@ export default function Shifts() {
 
   const { data: drivers = [], isLoading: driversLoading } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.Driver.list(),
+    queryFn: () => base44.entities.DriverProfile.list(),
   });
 
   // Get week range

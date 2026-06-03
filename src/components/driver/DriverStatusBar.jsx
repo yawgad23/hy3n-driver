@@ -16,7 +16,7 @@ export default function DriverStatusBar({ driver, isOnline, onToggle, tripReques
   const updateStatus = useMutation({
     mutationFn: async (status) => {
       if (!driver) return;
-      await base44.entities.Driver.update(driver.id, { is_online: status === "active" });
+      await base44.entities.DriverProfile.update(driver.id, { is_online: status === "active" });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["driver-profile"] }),
   });
@@ -27,7 +27,7 @@ export default function DriverStatusBar({ driver, isOnline, onToggle, tripReques
     // Also update location if going online
     if (val && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(pos => {
-        base44.entities.Driver.update(driver.id, {
+        base44.entities.DriverProfile.update(driver.id, {
           current_lat: pos.coords.latitude,
           current_lng: pos.coords.longitude,
         }).catch(() => {});

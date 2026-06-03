@@ -41,7 +41,7 @@ export default function BulkTripActions({ selectedTrips, onBulkUpdate }) {
     try {
       await Promise.all(
         selectedTrips.map(tripId =>
-          base44.entities.Trip.update(tripId, { status: actionType })
+          base44.entities.Ride.update(tripId, { status: actionType })
         )
       );
       

@@ -15,7 +15,7 @@ export default function Drivers() {
 
   const { data: drivers = [], isLoading } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.Driver.list("-created_date"),
+    queryFn: () => base44.entities.DriverProfile.list("-created_date"),
   });
 
   const filtered = drivers.filter(d => {

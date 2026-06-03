@@ -26,12 +26,12 @@ export default function DriverDetails() {
 
   const { data: driver, isLoading } = useQuery({
     queryKey: ["driver", id],
-    queryFn: () => base44.entities.Driver.get(id),
+    queryFn: () => base44.entities.DriverProfile.get(id),
     enabled: !!id,
   });
 
   const updateDriverMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Driver.update(id, data),
+    mutationFn: ({ id, data }) => base44.entities.DriverProfile.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["driver", id] });
     },

@@ -19,12 +19,12 @@ export default function Dashboard() {
 
   const { data: drivers = [], isLoading: driversLoading } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.Driver.list("-created_date"),
+    queryFn: () => base44.entities.DriverProfile.list("-created_date"),
   });
 
   const { data: trips = [], isLoading: tripsLoading } = useQuery({
     queryKey: ["trips"],
-    queryFn: () => base44.entities.Trip.list("-created_date", 20),
+    queryFn: () => base44.entities.Ride.list("-created_date", 20),
   });
 
   const handleRefresh = async () => {

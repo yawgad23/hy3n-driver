@@ -27,14 +27,14 @@ export default function TripDetails() {
 
   const { data: trip, isLoading } = useQuery({
     queryKey: ["trip", id],
-    queryFn: () => base44.entities.Trip.get(id),
+    queryFn: () => base44.entities.Ride.get(id),
     enabled: !!id,
   });
 
   // Get driver data for tracking
   const { data: drivers = [] } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.Driver.list(),
+    queryFn: () => base44.entities.DriverProfile.list(),
     enabled: !!trip?.driver_id,
   });
 

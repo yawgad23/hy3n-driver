@@ -67,7 +67,7 @@ export default function AutoDispatchPanel({ trip, onDriverAssigned }) {
       const topDriver = suggestions[0];
       
       // Update the trip with the selected driver
-      await base44.entities.Trip.update(trip.id, {
+      await base44.entities.Ride.update(trip.id, {
         driver_id: topDriver.id,
         status: "in_progress",
       });

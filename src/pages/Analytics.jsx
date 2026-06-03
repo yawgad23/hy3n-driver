@@ -19,12 +19,12 @@ import StatsCard from "../components/dashboard/StatsCard";
 export default function Analytics() {
   const { data: drivers = [], isLoading: driversLoading } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.Driver.list(),
+    queryFn: () => base44.entities.DriverProfile.list(),
   });
 
   const { data: trips = [], isLoading: tripsLoading } = useQuery({
     queryKey: ["trips"],
-    queryFn: () => base44.entities.Trip.list("-trip_date"),
+    queryFn: () => base44.entities.Ride.list("-trip_date"),
   });
 
   if (driversLoading || tripsLoading) {

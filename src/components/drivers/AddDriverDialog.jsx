@@ -61,7 +61,7 @@ export default function AddDriverDialog({ onDriverAdded }) {
       setForm(initialForm);
       
       // Create in background
-      const newDriver = await base44.entities.Driver.create({
+      const newDriver = await base44.entities.DriverProfile.create({
         ...form,
         ...coords,
         latitude: undefined,

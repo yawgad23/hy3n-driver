@@ -27,7 +27,7 @@ export default function RealTimeActivityFeed() {
 
   useEffect(() => {
     // Subscribe to trip changes
-    const unsubscribeTrips = base44.entities.Trip.subscribe((event) => {
+    const unsubscribeTrips = base44.entities.Ride.subscribe((event) => {
       const activity = {
         id: `${event.type}-${event.data.id}-${Date.now()}`,
         type: `trip_${event.type}`,
@@ -41,7 +41,7 @@ export default function RealTimeActivityFeed() {
     });
 
     // Subscribe to driver changes
-    const unsubscribeDrivers = base44.entities.Driver.subscribe((event) => {
+    const unsubscribeDrivers = base44.entities.DriverProfile.subscribe((event) => {
       if (event.type === "update" && event.changed_fields?.includes("status")) {
         const activity = {
           id: `driver-${event.data.id}-${Date.now()}`,

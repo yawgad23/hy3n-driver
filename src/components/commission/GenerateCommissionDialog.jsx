@@ -15,13 +15,13 @@ export default function GenerateCommissionDialog({ open, onOpenChange }) {
 
   const { data: drivers = [] } = useQuery({
     queryKey: ["drivers-for-commission"],
-    queryFn: () => base44.entities.Driver.filter({ status: "active" }),
+    queryFn: () => base44.entities.DriverProfile.filter({ status: "active" }),
     enabled: open,
   });
 
   const { data: trips = [] } = useQuery({
     queryKey: ["trips-for-commission"],
-    queryFn: () => base44.entities.Trip.filter({ status: "completed" }),
+    queryFn: () => base44.entities.Ride.filter({ status: "completed" }),
     enabled: open,
   });
 

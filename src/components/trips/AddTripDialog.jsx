@@ -96,7 +96,7 @@ export default function AddTripDialog({ onTripAdded }) {
       const resolvedTripType = isKantankaHyen(resolvedDriverVehicle) ? "comfort" : (form.trip_type || "standard");
 
       // Create in background
-      const newTrip = await base44.entities.Trip.create({
+      const newTrip = await base44.entities.Ride.create({
         ...form,
         ...coords,
         driver_name: activeTab === "auto" && selectedDriver ? selectedDriver.full_name : form.driver_name,

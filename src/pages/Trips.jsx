@@ -36,7 +36,7 @@ export default function Trips() {
 
   const { data: trips = [], isLoading } = useQuery({
     queryKey: ["trips"],
-    queryFn: () => base44.entities.Trip.list("-created_date"),
+    queryFn: () => base44.entities.Ride.list("-created_date"),
   });
 
   const filtered = trips.filter(t => {

@@ -27,7 +27,7 @@ export default function DriverPreferences({ driver }) {
   const handleDeleteAccount = async () => {
     setDeleting(true);
     if (driver?.id) {
-      await base44.entities.Driver.delete(driver.id);
+      await base44.entities.DriverProfile.delete(driver.id);
     }
     toast.success("Account data deleted. You have been signed out.");
     setTimeout(() => base44.auth.logout("/"), 1500);

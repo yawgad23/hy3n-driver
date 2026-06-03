@@ -39,7 +39,7 @@ export default function AddDriverDialog() {
 
   const createDriverMutation = useMutation({
     mutationFn: async (data) => {
-      return await base44.entities.Driver.create(data);
+      return await base44.entities.DriverProfile.create(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["drivers"] });

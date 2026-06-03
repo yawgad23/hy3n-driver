@@ -103,7 +103,7 @@ export function useSimulatedDriverTracking(enabledDrivers) {
         try {
           await Promise.all(
             updates.map(update => 
-              base44.entities.Driver.update(update.id, {
+              base44.entities.DriverProfile.update(update.id, {
                 latitude: update.latitude,
                 longitude: update.longitude,
                 last_location_update: update.last_location_update,

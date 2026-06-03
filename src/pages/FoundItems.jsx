@@ -14,7 +14,7 @@ export default function FoundItems() {
   const { data: trips, isLoading } = useQuery({
     queryKey: ["found-items"],
     queryFn: async () => {
-      const allTrips = await base44.entities.Trip.filter({});
+      const allTrips = await base44.entities.Ride.filter({});
       return allTrips.filter(trip => trip.found_item_reported === true);
     },
   });

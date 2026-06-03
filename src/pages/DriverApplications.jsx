@@ -27,7 +27,7 @@ export default function DriverApplications() {
 
   const { data: applications = [] } = useQuery({
     queryKey: ["driver-applications"],
-    queryFn: () => base44.entities.Driver.list("-created_date", 100),
+    queryFn: () => base44.entities.DriverProfile.list("-created_date", 100),
   });
 
   const filtered = applications.filter((a) => {
@@ -41,7 +41,7 @@ export default function DriverApplications() {
   const handleApprove = async (app) => {
     setLoading(true);
     try {
-      await base44.entities.Driver.update(app.id, {
+      await base44.entities.DriverProfile.update(app.id, {
         status: "Active",
       });
       queryClient.invalidateQueries({ queryKey: ["driver-applications"] });
@@ -57,7 +57,7 @@ export default function DriverApplications() {
   const handleReject = async (app) => {
     setLoading(true);
     try {
-      await base44.entities.Driver.update(app.id, {
+      await base44.entities.DriverProfile.update(app.id, {
         status: "Inactive",
       });
       queryClient.invalidateQueries({ queryKey: ["driver-applications"] });

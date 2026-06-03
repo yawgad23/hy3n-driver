@@ -28,8 +28,8 @@ export default function DispatchAnalytics() {
     setLoading(true);
     try {
       const [drivers, trips] = await Promise.all([
-        base44.entities.Driver.list(),
-        base44.entities.Trip.list(),
+        base44.entities.DriverProfile.list(),
+        base44.entities.Ride.list(),
       ]);
 
       const activeDrivers = drivers.filter(d => 

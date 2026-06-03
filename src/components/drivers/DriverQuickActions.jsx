@@ -48,7 +48,7 @@ export default function DriverQuickActions({ driver, onStatusChange }) {
     
     setLoading(true);
     try {
-      await base44.entities.Driver.update(driver.id, { status: "suspended" });
+      await base44.entities.DriverProfile.update(driver.id, { status: "suspended" });
       queryClient.invalidateQueries({ queryKey: ["drivers"] });
       onStatusChange?.("suspended");
       toast.success("Driver suspended");
@@ -62,7 +62,7 @@ export default function DriverQuickActions({ driver, onStatusChange }) {
   const handleActivate = async () => {
     setLoading(true);
     try {
-      await base44.entities.Driver.update(driver.id, { status: "active" });
+      await base44.entities.DriverProfile.update(driver.id, { status: "active" });
       queryClient.invalidateQueries({ queryKey: ["drivers"] });
       onStatusChange?.("active");
       toast.success("Driver activated");

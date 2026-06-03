@@ -49,7 +49,7 @@ export default function ScheduleAssignmentDialog({ open, onOpenChange, selectedD
 
   const loadDrivers = async () => {
     try {
-      const driverList = await base44.entities.Driver.list();
+      const driverList = await base44.entities.DriverProfile.list();
       setDrivers(driverList.filter(d => d.status !== "suspended"));
     } catch (error) {
       console.error("Failed to load drivers:", error);

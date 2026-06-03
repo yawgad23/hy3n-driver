@@ -30,7 +30,7 @@ export default function DriverEarningsDashboard() {
 
   const { data: trips = [], isLoading } = useQuery({
     queryKey: ["trips"],
-    queryFn: () => base44.entities.Trip.list("-created_date"),
+    queryFn: () => base44.entities.Ride.list("-created_date"),
   });
 
   const COMMISSION_RATE = 0.15;

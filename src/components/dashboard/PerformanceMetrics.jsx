@@ -7,12 +7,12 @@ import { Card, CardContent } from "@/components/ui/card";
 export default function PerformanceMetrics() {
   const { data: drivers = [] } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.Driver.list(),
+    queryFn: () => base44.entities.DriverProfile.list(),
   });
 
   const { data: trips = [] } = useQuery({
     queryKey: ["trips"],
-    queryFn: () => base44.entities.Trip.list(),
+    queryFn: () => base44.entities.Ride.list(),
   });
 
   // Calculate metrics

@@ -39,7 +39,7 @@ export default function QuickDispatchButton({ trip, onDispatchSuccess }) {
 
   const handleQuickAssign = async (driver) => {
     try {
-      await base44.entities.Trip.update(trip.id, {
+      await base44.entities.Ride.update(trip.id, {
         driver_id: driver.id,
         status: "in_progress",
       });

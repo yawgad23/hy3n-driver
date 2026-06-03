@@ -38,7 +38,7 @@ export default function DriverRegister() {
       if (user) {
         setEmail(user.email || "");
         // Check if already has a Driver record
-        base44.entities.Driver.filter({ email: user.email }).then(profiles => {
+        base44.entities.DriverProfile.filter({ email: user.email }).then(profiles => {
           if (profiles.length > 0) {
             window.location.href = "/driver-app";
           } else {
@@ -119,7 +119,7 @@ export default function DriverRegister() {
       ]);
 
       const user = await base44.auth.me();
-      await base44.entities.Driver.create({
+      await base44.entities.DriverProfile.create({
         full_name: fullName,
         phone,
         email: email || user?.email,

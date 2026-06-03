@@ -15,7 +15,7 @@ export default function ShiftAlertsPanel() {
     fetchAlerts();
     
     // Subscribe to driver status changes
-    const unsubscribe = base44.entities.Driver.subscribe(async (event) => {
+    const unsubscribe = base44.entities.DriverProfile.subscribe(async (event) => {
       if (event.type === "update" && event.changed_fields?.includes("status")) {
         await checkOffScheduleActivity(event.data);
       }
@@ -28,7 +28,7 @@ export default function ShiftAlertsPanel() {
     try {
       // In production, you'd query an Alert entity
       // For now, we'll check active drivers against shifts
-      const drivers = await base44.entities.Driver.filter({ status: "active" });
+      const drivers = await base44.entities.DriverProfile.filter({ status: "active" });
       const activeAlerts = [];
 
       for (const driver of drivers) {

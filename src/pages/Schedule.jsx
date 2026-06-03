@@ -30,7 +30,7 @@ export default function Schedule() {
 
   const { data: drivers = [] } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.Driver.list(),
+    queryFn: () => base44.entities.DriverProfile.list(),
   });
 
   const filteredSchedules = filterStatus === "all" 
