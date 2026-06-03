@@ -27,22 +27,22 @@ export default function DriverApplications() {
 
   const { data: applications = [] } = useQuery({
     queryKey: ["driver-applications"],
-    queryFn: () => base44.entities.DriverProfile.list("-created_date", 100),
+    queryFn: () => base44.entities.Driver.list("-created_date", 100),
   });
 
   const filtered = applications.filter((a) => {
-    const matchFilter = filter === "all" || a.approval_status === filter;
+    const matchFilter = filter === "all" || (a.status || "Pending").toLowerCase() === filter;
     const matchSearch = !search || a.full_name?.toLowerCase().includes(search.toLowerCase()) || a.email?.toLowerCase().includes(search.toLowerCase()) || a.phone?.includes(search) || a.license_plate?.toLowerCase().includes(search.toLowerCase());
     return matchFilter && matchSearch;
   });
 
-  const pendingCount = applications.filter((a) => a.approval_status === "pending").length;
+  const pendingCount = applications.filter((a) => (a.status || "Pending").toLowerCase() === "pending").length;
 
   const handleApprove = async (app) => {
     setLoading(true);
     try {
-      await base44.entities.DriverProfile.update(app.id, {
-        approval_status: "approved",
+      await base44.entities.Driver.update(app.id, {
+        status: "Active",
       });
       queryClient.invalidateQueries({ queryKey: ["driver-applications"] });
       toast.success(`${app.full_name} has been approved as a driver.`);
@@ -57,8 +57,8 @@ export default function DriverApplications() {
   const handleReject = async (app) => {
     setLoading(true);
     try {
-      await base44.entities.DriverProfile.update(app.id, {
-        approval_status: "rejected",
+      await base44.entities.Driver.update(app.id, {
+        status: "Inactive",
       });
       queryClient.invalidateQueries({ queryKey: ["driver-applications"] });
       toast.success("Application rejected.");
@@ -116,7 +116,7 @@ export default function DriverApplications() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <Badge className={STATUS_CONFIG[app.approval_status]?.color}>{STATUS_CONFIG[app.approval_status]?.label || "Pending"}</Badge>
+                    <Badge className={STATUS_CONFIG[(app.status || "Pending").toLowerCase()]?.color}>{STATUS_CONFIG[(app.status || "Pending").toLowerCase()]?.label || app.status || "Pending"}</Badge>
                     <Button size="sm" variant="outline" onClick={() => setSelected(app)}>
                       <Eye className="w-4 h-4 mr-1" />Review
                     </Button>
@@ -139,9 +139,8 @@ export default function DriverApplications() {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div><p className="text-muted-foreground text-xs">Email</p><p className="font-medium">{selected.email}</p></div>
                 <div><p className="text-muted-foreground text-xs">Phone</p><p className="font-medium">{selected.phone}</p></div>
-                <div><p className="text-muted-foreground text-xs">Vehicle</p><p className="font-medium">{selected.vehicle_make ? `${selected.vehicle_make} ${selected.vehicle_model || ""}`.trim() : "—"}</p></div>
-                <div><p className="text-muted-foreground text-xs">Plate</p><p className="font-medium">{selected.license_plate || "—"}</p></div>
-                <div><p className="text-muted-foreground text-xs">MoMo Number</p><p className="font-medium">{selected.momo_number || "—"}</p></div>
+                <div><p className="text-muted-foreground text-xs">Vehicle</p><p className="font-medium">{selected.vehicle_model || "—"}</p></div>
+                <div><p className="text-muted-foreground text-xs">Plate</p><p className="font-medium">{selected.vehicle_plate || "—"}</p></div>
               </div>
 
               {/* Documents */}
@@ -169,7 +168,7 @@ export default function DriverApplications() {
                 ))}
               </div>
 
-              {selected.approval_status === "pending" && (
+              {(selected.status || "Pending").toLowerCase() === "pending" && (
                 <div className="space-y-3 pt-2 border-t border-border">
                   <div className="space-y-2">
                     <Label>Rejection Reason (optional)</Label>
@@ -191,10 +190,10 @@ export default function DriverApplications() {
                 </div>
               )}
 
-              {selected.approval_status !== "pending" && (
+              {(selected.status || "Pending").toLowerCase() !== "pending" && (
                 <div className="pt-2 border-t border-border">
-                  <Badge className={STATUS_CONFIG[selected.approval_status]?.color + " text-sm"}>
-                    {STATUS_CONFIG[selected.approval_status]?.label}
+                  <Badge className={(STATUS_CONFIG[(selected.status || "Pending").toLowerCase()]?.color || "") + " text-sm"}>
+                    {STATUS_CONFIG[(selected.status || "Pending").toLowerCase()]?.label || selected.status}
                   </Badge>
                   {selected.rejection_reason && (
                     <p className="text-sm text-muted-foreground mt-2">Reason: {selected.rejection_reason}</p>

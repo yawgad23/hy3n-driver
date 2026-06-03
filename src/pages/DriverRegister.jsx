@@ -37,8 +37,8 @@ export default function DriverRegister() {
     base44.auth.me().then(user => {
       if (user) {
         setEmail(user.email || "");
-        // Check if already has a DriverProfile
-        base44.entities.DriverProfile.filter({ user_id: user.id }).then(profiles => {
+        // Check if already has a Driver record
+        base44.entities.Driver.filter({ email: user.email }).then(profiles => {
           if (profiles.length > 0) {
             window.location.href = "/driver-app";
           } else {
@@ -119,26 +119,18 @@ export default function DriverRegister() {
       ]);
 
       const user = await base44.auth.me();
-      await base44.entities.DriverProfile.create({
-        user_id: user?.id,
+      await base44.entities.Driver.create({
         full_name: fullName,
         phone,
-        email,
-        vehicle_make: vehicleMake,
-        vehicle_model: vehicleModel,
-        license_plate: vehiclePlate,
-        momo_number: momoNumber || null,
-        ghana_card_url: ghanaCardUrl || null,
-        drivers_license_url: licensePhotoUrl || null,
-        vehicle_registration_url: vehiclePhotoUrl || null,
-        insurance_url: insurancePhotoUrl || null,
-        roadworthy_url: roadworthyPhotoUrl || null,
-        approval_status: "pending",
+        email: email || user?.email,
+        vehicle_model: `${vehicleMake} ${vehicleModel}`.trim(),
+        vehicle_plate: vehiclePlate,
+        license_number: licenseNumber || null,
+        status: "Pending",
         is_online: false,
         total_earnings: 0,
         total_rides: 0,
         rating: 5,
-        ride_categories: ["standard"],
       });
 
       setStep(5);

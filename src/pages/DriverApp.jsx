@@ -32,15 +32,15 @@ export default function DriverApp() {
     queryFn: async () => {
       const user = await base44.auth.me();
       if (!user) return null;
-      const profiles = await base44.entities.DriverProfile.filter({ user_id: user.id });
+      const profiles = await base44.entities.Driver.filter({ email: user.email });
       return profiles[0] || null;
     },
   });
 
   const { data: allTrips = [] } = useQuery({
     queryKey: ["driver-rides", driver?.id],
-    queryFn: () => base44.entities.Ride.filter({ driver_id: driver?.user_id }),
-    enabled: !!driver?.user_id,
+    queryFn: () => base44.entities.Ride.filter({ driver_id: driver?.id }),
+    enabled: !!driver?.id,
   });
 
   if (showSplash) {
