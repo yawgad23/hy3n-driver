@@ -19,10 +19,11 @@ export default function DriverRegister() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [vehicleMake, setVehicleMake] = useState("");
   const [vehicleModel, setVehicleModel] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
   const [licenseNumber, setLicenseNumber] = useState("");
-  const [accessToken, setAccessToken] = useState(null);
+  const [momoNumber, setMomoNumber] = useState("");
   const [ghanaCardFile, setGhanaCardFile] = useState(null);
   const [licensePhotoFile, setLicensePhotoFile] = useState(null);
   const [vehiclePhotoFile, setVehiclePhotoFile] = useState(null);
@@ -36,7 +37,14 @@ export default function DriverRegister() {
     base44.auth.me().then(user => {
       if (user) {
         setEmail(user.email || "");
-        setStep(3);
+        // Check if already has a DriverProfile
+        base44.entities.DriverProfile.filter({ user_id: user.id }).then(profiles => {
+          if (profiles.length > 0) {
+            window.location.href = "/driver-app";
+          } else {
+            setStep(3);
+          }
+        }).catch(() => setStep(3));
       }
     }).catch(() => {});
   }, []);
@@ -64,7 +72,6 @@ export default function DriverRegister() {
       const token = result?.access_token || result?.data?.access_token;
       if (token) {
         base44.auth.setToken(token);
-        setAccessToken(token);
       }
       setStep(3);
     } catch (err) {
@@ -89,19 +96,20 @@ export default function DriverRegister() {
 
   const uploadFile = async (file) => {
     if (!file) return null;
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    return file_url;
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      return file_url;
+    } catch {
+      return null;
+    }
   };
 
   const handleApplicationSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (!ghanaCardFile || !licensePhotoFile || !vehiclePhotoFile || !insurancePhotoFile || !roadworthyPhotoFile) {
-      setError("Please upload all required documents");
-      return;
-    }
     setLoading(true);
     try {
+      // Upload any provided documents (all optional)
       const [ghanaCardUrl, licensePhotoUrl, vehiclePhotoUrl, insurancePhotoUrl, roadworthyPhotoUrl] = await Promise.all([
         uploadFile(ghanaCardFile),
         uploadFile(licensePhotoFile),
@@ -110,20 +118,27 @@ export default function DriverRegister() {
         uploadFile(roadworthyPhotoFile),
       ]);
 
-      await base44.entities.DriverApplication.create({
+      const user = await base44.auth.me();
+      await base44.entities.DriverProfile.create({
+        user_id: user?.id,
         full_name: fullName,
         phone,
         email,
-        address,
+        vehicle_make: vehicleMake,
         vehicle_model: vehicleModel,
-        vehicle_plate: vehiclePlate,
-        license_number: licenseNumber,
-        ghana_card_url: ghanaCardUrl,
-        license_photo_url: licensePhotoUrl,
-        vehicle_photo_url: vehiclePhotoUrl,
-        insurance_photo_url: insurancePhotoUrl,
-        roadworthy_photo_url: roadworthyPhotoUrl,
-        status: "pending",
+        license_plate: vehiclePlate,
+        momo_number: momoNumber || null,
+        ghana_card_url: ghanaCardUrl || null,
+        drivers_license_url: licensePhotoUrl || null,
+        vehicle_registration_url: vehiclePhotoUrl || null,
+        insurance_url: insurancePhotoUrl || null,
+        roadworthy_url: roadworthyPhotoUrl || null,
+        approval_status: "pending",
+        is_online: false,
+        total_earnings: 0,
+        total_rides: 0,
+        rating: 5,
+        ride_categories: ["standard"],
       });
 
       setStep(5);
@@ -172,33 +187,36 @@ export default function DriverRegister() {
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
           <p className="text-sm text-muted-foreground">
-            Your driver application has been submitted. Our admin team will review your documents and activate your account once approved.
+            Your driver application has been submitted. Our admin team will review your details and activate your account once approved.
           </p>
           <p className="text-xs text-muted-foreground bg-muted rounded-lg p-3">
             You will be notified when your application is approved.
           </p>
           <Button className="w-full h-12" asChild>
-            <Link to="/login">Back to Login</Link>
+            <Link to="/driver-app">Go to Driver App</Link>
           </Button>
         </div>
       </AuthLayout>
     );
   }
 
-  // Step 4: Document Upload
+  // Step 4: Document Upload (optional)
   if (step === 4) {
     return (
-      <AuthLayout icon={Upload} title="Upload Documents" subtitle="We need to verify your identity and vehicle">
+      <AuthLayout icon={Upload} title="Upload Documents" subtitle="Optional — you can skip and upload later from your profile">
         {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
         <form onSubmit={handleApplicationSubmit} className="space-y-4">
-          <FileUploadField label="Ghana Card / National ID *" file={ghanaCardFile} setFile={setGhanaCardFile} fieldId="ghana-card" />
-          <FileUploadField label="Driver's License Photo *" file={licensePhotoFile} setFile={setLicensePhotoFile} fieldId="license-photo" />
-          <FileUploadField label="Vehicle Photo *" file={vehiclePhotoFile} setFile={setVehiclePhotoFile} fieldId="vehicle-photo" />
-          <FileUploadField label="Vehicle Insurance Certificate *" file={insurancePhotoFile} setFile={setInsurancePhotoFile} fieldId="insurance-photo" />
-          <FileUploadField label="Road Worthy Certificate *" file={roadworthyPhotoFile} setFile={setRoadworthyPhotoFile} fieldId="roadworthy-photo" />
+          <p className="text-xs text-muted-foreground bg-muted rounded-lg px-3 py-2">
+            All documents are <strong>optional</strong> at this stage. You can upload them later from your profile. Your account will be reviewed by an admin before you can go online.
+          </p>
+          <FileUploadField label="Ghana Card / National ID" file={ghanaCardFile} setFile={setGhanaCardFile} fieldId="ghana-card" />
+          <FileUploadField label="Driver's License Photo" file={licensePhotoFile} setFile={setLicensePhotoFile} fieldId="license-photo" />
+          <FileUploadField label="Vehicle Photo" file={vehiclePhotoFile} setFile={setVehiclePhotoFile} fieldId="vehicle-photo" />
+          <FileUploadField label="Vehicle Insurance Certificate" file={insurancePhotoFile} setFile={setInsurancePhotoFile} fieldId="insurance-photo" />
+          <FileUploadField label="Road Worthy Certificate" file={roadworthyPhotoFile} setFile={setRoadworthyPhotoFile} fieldId="roadworthy-photo" />
           <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
             {loading ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Uploading...</>
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</>
             ) : (
               "Submit Application"
             )}
@@ -223,13 +241,6 @@ export default function DriverRegister() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Residential Address</Label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Your home address" value={address} onChange={(e) => setAddress(e.target.value)} className="pl-10 h-12" required />
-            </div>
-          </div>
-          <div className="space-y-2">
             <Label>Phone Number</Label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -237,10 +248,24 @@ export default function DriverRegister() {
             </div>
           </div>
           <div className="space-y-2">
+            <Label>MoMo Number (for receiving payments)</Label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input type="tel" placeholder="+233 xx xxx xxxx" value={momoNumber} onChange={(e) => setMomoNumber(e.target.value)} className="pl-10 h-12" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Vehicle Make</Label>
+            <div className="relative">
+              <Car className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="e.g. Toyota" value={vehicleMake} onChange={(e) => setVehicleMake(e.target.value)} className="pl-10 h-12" required />
+            </div>
+          </div>
+          <div className="space-y-2">
             <Label>Vehicle Model</Label>
             <div className="relative">
               <Car className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="e.g. Toyota Camry 2022" value={vehicleModel} onChange={(e) => setVehicleModel(e.target.value)} className="pl-10 h-12" required />
+              <Input placeholder="e.g. Camry 2022" value={vehicleModel} onChange={(e) => setVehicleModel(e.target.value)} className="pl-10 h-12" required />
             </div>
           </div>
           <div className="space-y-2">
@@ -248,13 +273,6 @@ export default function DriverRegister() {
             <div className="relative">
               <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input placeholder="ABC-1234" value={vehiclePlate} onChange={(e) => setVehiclePlate(e.target.value)} className="pl-10 h-12" required />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>{"Driver's License Number"}</Label>
-            <div className="relative">
-              <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Your license number" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} className="pl-10 h-12" required />
             </div>
           </div>
           <Button type="submit" className="w-full h-12 font-medium">Next: Upload Documents</Button>
@@ -329,7 +347,11 @@ export default function DriverRegister() {
           {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating account...</> : "Continue"}
         </Button>
       </form>
-      <p className="text-xs text-center text-muted-foreground mt-4">By signing up, you agree to our Terms of Service and Privacy Policy</p>
+      <p className="text-xs text-center text-muted-foreground mt-4">
+        By signing up, you agree to our{" "}
+        <a href="#" className="underline">Terms of Service</a> and{" "}
+        <a href="#" className="underline">Privacy Policy</a>.
+      </p>
     </AuthLayout>
   );
 }

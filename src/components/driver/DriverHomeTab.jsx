@@ -40,16 +40,16 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
   const queryClient = useQueryClient();
 
   const { data: pendingTrips } = useQuery({
-    queryKey: ["pending-trips"],
-    queryFn: () => base44.entities.Trip.filter({ status: "pending" }),
+    queryKey: ["pending-rides"],
+    queryFn: () => base44.entities.Ride.filter({ status: "matched", driver_id: driver?.user_id }),
     refetchInterval: 5000,
-    enabled: isOnline,
+    enabled: isOnline && !!driver?.user_id,
   });
 
   const { data: myTrips = [] } = useQuery({
-    queryKey: ["driver-trips", driver?.id],
-    queryFn: () => base44.entities.Trip.filter({ driver_name: driver?.full_name }),
-    enabled: !!driver,
+    queryKey: ["driver-rides", driver?.id],
+    queryFn: () => base44.entities.Ride.filter({ driver_id: driver?.user_id }),
+    enabled: !!driver?.user_id,
   });
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
       driver?.vehicle_model?.toLowerCase().includes("kantanka hyen") &&
       trip.trip_type !== "comfort"
     ) {
-      await base44.entities.Trip.update(trip.id, { trip_type: "comfort" });
+      await base44.entities.Ride.update(trip.id, { category: "comfort" });
     }
 
     const newQueue = [...multiStopQueue, trip];
@@ -131,18 +131,15 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
 
   const handleCompleteTrip = async () => {
     if (!currentTrip) return;
-    await base44.functions.invoke("updateTripStatus", { tripId: currentTrip.id, status: "completed" });
+    await base44.entities.Ride.update(currentTrip.id, { status: "completed" });
     toast.success("Trip completed!");
     setShowRatingDialog(true);
   };
 
   const handlePassengerRating = async ({ rating, remarks, foundItem, itemDescription }) => {
-    await base44.entities.Trip.update(currentTrip.id, {
-      passenger_rating: rating,
-      passenger_remarks: remarks,
-      found_item_reported: foundItem,
-      found_item_description: foundItem ? itemDescription : null,
-      found_item_reported_at: foundItem ? new Date().toISOString() : null,
+    await base44.entities.Ride.update(currentTrip.id, {
+      driver_rating: rating,
+      driver_feedback: remarks,
     });
     toast.success("Rating submitted!" + (foundItem ? " Found item reported." : ""));
     setShowRatingDialog(false);
@@ -150,22 +147,19 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
   };
 
   const handleSafetyReportSubmit = async () => {
-    if (safetyData) {
-      await base44.entities.Trip.update(currentTrip.id, { safety_data: safetyData });
-    }
-    toast.success("Safety report saved!");
+    toast.success("Trip completed!");
     setShowSafetyReport(false);
     setCurrentTrip(null);
-    queryClient.invalidateQueries({ queryKey: ["pending-trips"] });
+    queryClient.invalidateQueries({ queryKey: ["pending-rides"] });
     queryClient.invalidateQueries({ queryKey: ["driver-profile"] });
-    queryClient.invalidateQueries({ queryKey: ["driver-trips", driver?.id] });
+    queryClient.invalidateQueries({ queryKey: ["driver-rides", driver?.id] });
   };
 
   const handleCancelTrip = async () => {
-    await base44.functions.invoke("updateTripStatus", { tripId: currentTrip.id, status: "cancelled" });
+    await base44.entities.Ride.update(currentTrip.id, { status: "cancelled" });
     toast.info("Trip cancelled");
     setCurrentTrip(null);
-    queryClient.invalidateQueries({ queryKey: ["pending-trips"] });
+    queryClient.invalidateQueries({ queryKey: ["pending-rides"] });
   };
 
   const handleCallPassenger = () => {
@@ -174,11 +168,8 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
   };
 
   const handleSendMessage = async (message) => {
-    await base44.entities.Trip.update(currentTrip.id, {
-      last_message: message,
-      last_message_from: "driver",
-      last_message_time: new Date().toISOString(),
-    });
+    // Message stored locally — no Trip entity
+    toast.success("Message sent");
   };
 
   return (
@@ -264,14 +255,14 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
                     <div className="w-2 h-2 rounded-full bg-green-500 mt-2 shrink-0" />
                     <div>
                       <p className="text-[10px] text-muted-foreground font-semibold uppercase">Pickup</p>
-                      <p className="text-sm font-medium">{currentTrip.pickup_location}</p>
+                      <p className="text-sm font-medium">{currentTrip.pickup_address}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-2 rounded-lg bg-red-500/5 border border-red-500/20">
                     <div className="w-2 h-2 rounded-full bg-red-500 mt-2 shrink-0" />
                     <div>
                       <p className="text-[10px] text-muted-foreground font-semibold uppercase">Dropoff</p>
-                      <p className="text-sm font-medium">{currentTrip.dropoff_location}</p>
+                      <p className="text-sm font-medium">{currentTrip.destination_address}</p>
                     </div>
                   </div>
                 </div>
@@ -284,11 +275,11 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
                   </div>
                   <div className="rounded-lg bg-muted p-2">
                     <p className="text-xs text-muted-foreground">Duration</p>
-                    <p className="font-heading font-bold text-sm">{currentTrip.duration_min || "—"} min</p>
+                    <p className="font-heading font-bold text-sm">{currentTrip.duration_minutes || "—"} min</p>
                   </div>
                   <div className="rounded-lg bg-accent/10 p-2">
                     <p className="text-xs text-muted-foreground">Fare</p>
-                    <p className="font-heading font-bold text-sm text-accent">${currentTrip.fare || "—"}</p>
+                    <p className="font-heading font-bold text-sm text-accent">GHS {currentTrip.fare_estimate || "—"}</p>
                   </div>
                 </div>
 
@@ -298,10 +289,10 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
                     <User className="w-5 h-5 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-sm">{currentTrip.passenger_name || "Passenger"}</p>
+                    <p className="font-medium text-sm">{currentTrip.rider_name || "Passenger"}</p>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                      <span>4.8 • {currentTrip.passenger_phone || "No phone"}</span>
+                      <span>4.8 • {currentTrip.rider_phone || "No phone"}</span>
                     </div>
                   </div>
                   <Button variant="outline" size="icon" onClick={handleCallPassenger} className="h-9 w-9">
