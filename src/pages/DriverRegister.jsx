@@ -16,11 +16,11 @@ export default function DriverRegister() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState("+233");
   const [vehicleMake, setVehicleMake] = useState("");
   const [vehicleModel, setVehicleModel] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
-  const [momoNumber, setMomoNumber] = useState("");
+  const [momoNumber, setMomoNumber] = useState("+233");
   const [ghanaCardFile, setGhanaCardFile] = useState(null);
   const [licensePhotoFile, setLicensePhotoFile] = useState(null);
   const [vehiclePhotoFile, setVehiclePhotoFile] = useState(null);
@@ -223,7 +223,16 @@ export default function DriverRegister() {
 
       setStep(5);
     } catch (err) {
-      setError(err.message || "Failed to submit application");
+      console.error('[DriverRegister] Submission error:', err);
+      let msg = err?.message || "Failed to submit application";
+      if (msg.includes('permission-denied') || msg.includes('PERMISSION_DENIED')) {
+        msg = "Permission denied: Please check your Firestore security rules in Firebase Console and allow authenticated users to write to the DriverProfile collection.";
+      } else if (msg.includes('storage') || msg.includes('quota') || msg.includes('billing')) {
+        msg = "File upload failed: Firebase Storage requires the Blaze plan. Please upgrade your Firebase project or contact support.";
+      } else if (msg.includes('network') || msg.includes('offline')) {
+        msg = "Network error: Please check your internet connection and try again.";
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -321,16 +330,37 @@ export default function DriverRegister() {
           </div>
           <div className="space-y-2">
             <Label>Phone Number</Label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input type="tel" placeholder="+233 xx xxx xxxx" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-10 h-12" required />
+            <div className="flex h-12">
+              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm font-medium select-none">+233</span>
+              <Input
+                type="tel"
+                placeholder="xx xxx xxxx"
+                value={phone.replace(/^\+233/, '')}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/[^0-9]/g, '');
+                  setPhone('+233' + digits);
+                }}
+                className="rounded-l-none h-12"
+                maxLength={9}
+                required
+              />
             </div>
           </div>
           <div className="space-y-2">
             <Label>MoMo Number (for receiving payments)</Label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input type="tel" placeholder="+233 xx xxx xxxx" value={momoNumber} onChange={(e) => setMomoNumber(e.target.value)} className="pl-10 h-12" />
+            <div className="flex h-12">
+              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm font-medium select-none">+233</span>
+              <Input
+                type="tel"
+                placeholder="xx xxx xxxx"
+                value={momoNumber.replace(/^\+233/, '')}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/[^0-9]/g, '');
+                  setMomoNumber('+233' + digits);
+                }}
+                className="rounded-l-none h-12"
+                maxLength={9}
+              />
             </div>
           </div>
           <div className="space-y-2">
