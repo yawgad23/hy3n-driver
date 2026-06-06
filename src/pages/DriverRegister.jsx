@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { firebaseClient } from "@/api/firebaseClient";
+import { getAuth, onAuthStateChanged, reload, sendEmailVerification } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Car, Mail, Lock, Loader2, Phone, User, FileText, Upload, CheckCircle, Clock, MapPin } from "lucide-react";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Car, Mail, Lock, Loader2, Phone, User, FileText, Upload, CheckCircle, Clock, RefreshCw } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
@@ -15,14 +15,11 @@ export default function DriverRegister() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [otpCode, setOtpCode] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
   const [vehicleMake, setVehicleMake] = useState("");
   const [vehicleModel, setVehicleModel] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
-  const [licenseNumber, setLicenseNumber] = useState("");
   const [momoNumber, setMomoNumber] = useState("");
   const [ghanaCardFile, setGhanaCardFile] = useState(null);
   const [licensePhotoFile, setLicensePhotoFile] = useState(null);
@@ -31,23 +28,67 @@ export default function DriverRegister() {
   const [roadworthyPhotoFile, setRoadworthyPhotoFile] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingVerification, setCheckingVerification] = useState(false);
+  const pollRef = useRef(null);
+
+  const auth = getAuth();
 
   // If already logged in, skip account creation steps
   useEffect(() => {
     firebaseClient.auth.me().then(user => {
       if (user) {
         setEmail(user.email || "");
-        // Check if already has a Driver record
         firebaseClient.entities.DriverProfile.filter({ email: user.email }).then(profiles => {
           if (profiles.length > 0) {
             window.location.href = "/driver-app";
           } else {
-            setStep(3);
+            // Check if email is verified
+            const firebaseUser = auth.currentUser;
+            if (firebaseUser && !firebaseUser.emailVerified) {
+              setStep(2);
+            } else {
+              setStep(3);
+            }
           }
         }).catch(() => setStep(3));
       }
     }).catch(() => {});
+
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
   }, []);
+
+  // Start polling for email verification when on step 2
+  useEffect(() => {
+    if (step === 2) {
+      startVerificationPolling();
+    } else {
+      if (pollRef.current) clearInterval(pollRef.current);
+    }
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [step]);
+
+  const startVerificationPolling = () => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    // Poll every 3 seconds to check if email has been verified
+    pollRef.current = setInterval(async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      try {
+        await reload(user); // Refresh user data from Firebase
+        if (user.emailVerified) {
+          clearInterval(pollRef.current);
+          toast({ title: "Email verified!", description: "Proceeding to your profile setup." });
+          setStep(3);
+        }
+      } catch (e) {
+        // Ignore polling errors
+      }
+    }, 3000);
+  };
 
   const handleAccountSubmit = async (e) => {
     e.preventDefault();
@@ -56,13 +97,23 @@ export default function DriverRegister() {
     setLoading(true);
     try {
       await firebaseClient.auth.register({ email, password });
-      setStep(3); // Skip OTP — Firebase uses email verification links, not 6-digit codes
+      // Send verification email
+      const user = auth.currentUser;
+      if (user && !user.emailVerified) {
+        await sendEmailVerification(user);
+      }
+      setStep(2);
     } catch (err) {
-      if (err.code === 'auth/email-already-in-use' || err.message.includes('email-already-in-use')) {
-        // If user exists, try to log them in instead
+      if (err.code === 'auth/email-already-in-use' || err.message?.includes('email-already-in-use')) {
         try {
           await firebaseClient.auth.loginViaEmailPassword(email, password);
-          setStep(3); // Skip OTP and go straight to profile
+          const user = auth.currentUser;
+          if (user && !user.emailVerified) {
+            await sendEmailVerification(user);
+            setStep(2);
+          } else {
+            setStep(3);
+          }
           return;
         } catch (loginErr) {
           setError("Email already registered. Please use the correct password to continue, or go to Login.");
@@ -75,29 +126,40 @@ export default function DriverRegister() {
     }
   };
 
-  const handleVerify = async () => {
+  const handleResendVerification = async () => {
     setError("");
-    setLoading(true);
     try {
-      const result = await firebaseClient.auth.verifyOtp({ email, otpCode });
-      const token = result?.access_token || result?.data?.access_token;
-      if (token) {
-        firebaseClient.auth.setToken(token);
+      const user = auth.currentUser;
+      if (user) {
+        await sendEmailVerification(user);
+        toast({ title: "Email sent!", description: "Check your inbox for the verification link." });
       }
-      setStep(3);
     } catch (err) {
-      setError(err.message || "Invalid verification code");
-    } finally {
-      setLoading(false);
+      if (err.code === 'auth/too-many-requests') {
+        setError("Too many requests. Please wait a few minutes before trying again.");
+      } else {
+        setError(err.message || "Failed to resend verification email");
+      }
     }
   };
 
-  const handleResend = async () => {
+  const handleCheckNow = async () => {
+    setCheckingVerification(true);
     try {
-      await firebaseClient.auth.resendOtp(email);
-      toast({ title: "Code sent", description: "Check your email for the new code." });
-    } catch (err) {
-      setError(err.message || "Failed to resend code");
+      const user = auth.currentUser;
+      if (!user) { setCheckingVerification(false); return; }
+      await reload(user);
+      if (user.emailVerified) {
+        clearInterval(pollRef.current);
+        toast({ title: "Email verified!", description: "Proceeding to your profile setup." });
+        setStep(3);
+      } else {
+        toast({ title: "Not verified yet", description: "Please click the link in your email first.", variant: "destructive" });
+      }
+    } catch (e) {
+      setError("Could not check verification status. Please try again.");
+    } finally {
+      setCheckingVerification(false);
     }
   };
 
@@ -120,7 +182,6 @@ export default function DriverRegister() {
     setError("");
     setLoading(true);
     try {
-      // Upload any provided documents (all optional)
       const [ghanaCardUrl, licensePhotoUrl, vehiclePhotoUrl, insurancePhotoUrl, roadworthyPhotoUrl] = await Promise.all([
         uploadFile(ghanaCardFile),
         uploadFile(licensePhotoFile),
@@ -130,15 +191,15 @@ export default function DriverRegister() {
       ]);
 
       const user = await firebaseClient.auth.me();
-      
-      // Check if profile already exists to avoid duplicates
+
       const existingProfiles = await firebaseClient.entities.DriverProfile.filter({ user_id: user.id });
-      
+
       const profileData = {
         user_id: user.id,
         full_name: fullName,
         phone,
         email: email || user?.email,
+        momo_number: momoNumber,
         vehicle_make: vehicleMake,
         vehicle_model: vehicleModel,
         license_plate: vehiclePlate,
@@ -219,7 +280,7 @@ export default function DriverRegister() {
     );
   }
 
-  // Step 4: Document Upload (required)
+  // Step 4: Document Upload
   if (step === 4) {
     const canSubmit = ghanaCardFile && licensePhotoFile && vehiclePhotoFile && insurancePhotoFile && roadworthyPhotoFile;
     return (
@@ -237,11 +298,7 @@ export default function DriverRegister() {
           <FileUploadField label="Vehicle Insurance Certificate" file={insurancePhotoFile} setFile={setInsurancePhotoFile} fieldId="insurance-photo" />
           <FileUploadField label="Road Worthy Certificate" file={roadworthyPhotoFile} setFile={setRoadworthyPhotoFile} fieldId="roadworthy-photo" />
           <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !canSubmit}>
-            {loading ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</>
-            ) : (
-              "Submit Application"
-            )}
+            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</> : "Submit Application"}
           </Button>
           <Button type="button" variant="ghost" className="w-full" onClick={() => setStep(3)}>Back</Button>
         </form>
@@ -303,26 +360,47 @@ export default function DriverRegister() {
     );
   }
 
-  // Step 2: OTP Verification
+  // Step 2: Email Verification (Firebase link-based)
   if (step === 2) {
     return (
-      <AuthLayout icon={Mail} title="Verify your email" subtitle={`We sent a code to ${email}`}>
+      <AuthLayout icon={Mail} title="Verify your email" subtitle={`We sent a verification link to ${email}`}>
         {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
-        <div className="flex justify-center mb-6">
-          <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoFocus autoComplete="one-time-code">
-            <InputOTPGroup>
-              <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
-              <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
-            </InputOTPGroup>
-          </InputOTP>
+        <div className="text-center space-y-6">
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+            <Mail className="w-10 h-10 text-primary" />
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              A verification link has been sent to:
+            </p>
+            <p className="font-semibold text-foreground">{email}</p>
+            <p className="text-xs text-muted-foreground">
+              Open your email app, find the message from Firebase, and click the verification link. This page will update automatically once verified.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Button
+              className="w-full h-12 font-medium"
+              onClick={handleCheckNow}
+              disabled={checkingVerification}
+            >
+              {checkingVerification
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Checking...</>
+                : <><RefreshCw className="w-4 h-4 mr-2" />I've verified my email</>
+              }
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full h-12"
+              onClick={handleResendVerification}
+            >
+              Resend verification email
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Check your spam/junk folder if you don't see the email.
+          </p>
         </div>
-        <Button className="w-full h-12 font-medium" onClick={handleVerify} disabled={loading || otpCode.length < 6}>
-          {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying...</> : "Verify"}
-        </Button>
-        <p className="text-center text-sm text-muted-foreground mt-4">
-          {"Didn't receive the code? "}
-          <button onClick={handleResend} className="text-primary font-medium hover:underline">Resend</button>
-        </p>
       </AuthLayout>
     );
   }
