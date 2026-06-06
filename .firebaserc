@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "hy3n26"
+  },
+  "targets": {
+    "hy3n26": {
+      "hosting": {
+        "hy3n-driver": [
+          "hy3n-driver"
+        ]
+      }
+    }
+  }
+}
