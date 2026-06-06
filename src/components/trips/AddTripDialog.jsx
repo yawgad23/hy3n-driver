@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, MapPin, Sparkles } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import DriverSuggestions from "./DriverSuggestions";
@@ -96,7 +96,7 @@ export default function AddTripDialog({ onTripAdded }) {
       const resolvedTripType = isKantankaHyen(resolvedDriverVehicle) ? "comfort" : (form.trip_type || "standard");
 
       // Create in background
-      const newTrip = await base44.entities.Ride.create({
+      const newTrip = await firebaseClient.entities.Ride.create({
         ...form,
         ...coords,
         driver_name: activeTab === "auto" && selectedDriver ? selectedDriver.full_name : form.driver_name,

@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { motion, AnimatePresence } from "framer-motion";
 import { Car, Wifi, WifiOff, Bell, ChevronRight, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -16,7 +16,7 @@ export default function DriverStatusBar({ driver, isOnline, onToggle, tripReques
   const updateStatus = useMutation({
     mutationFn: async (status) => {
       if (!driver) return;
-      await base44.entities.DriverProfile.update(driver.id, { is_online: status === "active" });
+      await firebaseClient.entities.DriverProfile.update(driver.id, { is_online: status === "active" });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["driver-profile"] }),
   });
@@ -27,7 +27,7 @@ export default function DriverStatusBar({ driver, isOnline, onToggle, tripReques
     // Also update location if going online
     if (val && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(pos => {
-        base44.entities.DriverProfile.update(driver.id, {
+        firebaseClient.entities.DriverProfile.update(driver.id, {
           current_lat: pos.coords.latitude,
           current_lng: pos.coords.longitude,
         }).catch(() => {});

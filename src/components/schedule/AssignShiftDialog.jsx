@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Plus, Clock, AlertCircle } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -30,7 +30,7 @@ export default function AssignShiftDialog({ driver, onSuccess }) {
     setLoading(true);
 
     try {
-      await base44.entities.Shift.create({
+      await firebaseClient.entities.Shift.create({
         driver_id: driver.id,
         driver_name: driver.full_name,
         shift_date: format(date, "yyyy-MM-dd"),

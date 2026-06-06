@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,7 @@ export default function FoundItems() {
   const { data: trips, isLoading } = useQuery({
     queryKey: ["found-items"],
     queryFn: async () => {
-      const allTrips = await base44.entities.Ride.filter({});
+      const allTrips = await firebaseClient.entities.Ride.filter({});
       return allTrips.filter(trip => trip.found_item_reported === true);
     },
   });

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ export default function CommissionTracking() {
 
   const { data: records = [], isLoading } = useQuery({
     queryKey: ["commission-records"],
-    queryFn: () => base44.entities.CommissionRecord.list("-created_date", 100),
+    queryFn: () => firebaseClient.entities.CommissionRecord.list("-created_date", 100),
   });
 
   const filtered = records.filter(r => {
@@ -44,7 +44,7 @@ export default function CommissionTracking() {
 
   const handleMarkPaid = async (record) => {
     const ref = prompt("Enter MoMo transaction reference (optional):");
-    await base44.entities.CommissionRecord.update(record.id, {
+    await firebaseClient.entities.CommissionRecord.update(record.id, {
       status: "paid",
       payment_method: "MTN MoMo",
       payment_reference: ref || "",
@@ -55,7 +55,7 @@ export default function CommissionTracking() {
   };
 
   const handleMarkOverdue = async (record) => {
-    await base44.entities.CommissionRecord.update(record.id, { status: "overdue" });
+    await firebaseClient.entities.CommissionRecord.update(record.id, { status: "overdue" });
     toast.warning(`Marked overdue for ${record.driver_name}`);
     queryClient.invalidateQueries({ queryKey: ["commission-records"] });
   };

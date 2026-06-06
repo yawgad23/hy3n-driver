@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ const STATUS_CONFIG = {
 export default function DriverCommissionPanel({ driver }) {
   const { data: records = [] } = useQuery({
     queryKey: ["driver-commission", driver?.full_name],
-    queryFn: () => base44.entities.CommissionRecord.filter({ driver_name: driver?.full_name }, "-created_date", 10),
+    queryFn: () => firebaseClient.entities.CommissionRecord.filter({ driver_name: driver?.full_name }, "-created_date", 10),
     enabled: !!driver?.full_name,
   });
 

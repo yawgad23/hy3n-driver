@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { toast } from "sonner";
 
 const SEVERITY_CONFIG = {
@@ -38,7 +38,7 @@ export default function SafetyAlertCard({ alert, onUpdate }) {
 
   const handleMarkReviewed = async () => {
     setLoading(true);
-    await base44.entities.SafetyAlert.update(alert.id, {
+    await firebaseClient.entities.SafetyAlert.update(alert.id, {
       status: "reviewed",
       manager_notes: notes,
       reviewed_at: new Date().toISOString(),
@@ -54,7 +54,7 @@ export default function SafetyAlertCard({ alert, onUpdate }) {
       return;
     }
     setLoading(true);
-    await base44.entities.SafetyAlert.update(alert.id, {
+    await firebaseClient.entities.SafetyAlert.update(alert.id, {
       status: "feedback_sent",
       feedback_message: feedback,
       feedback_sent_at: new Date().toISOString(),
@@ -67,7 +67,7 @@ export default function SafetyAlertCard({ alert, onUpdate }) {
 
   const handleResolve = async () => {
     setLoading(true);
-    await base44.entities.SafetyAlert.update(alert.id, {
+    await firebaseClient.entities.SafetyAlert.update(alert.id, {
       status: "resolved",
       manager_notes: notes,
     });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +34,7 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await base44.auth.loginViaEmailPassword(email, password);
+      await firebaseClient.auth.loginViaEmailPassword(email, password);
       
       // Save credentials if remember me is enabled
       if (rememberMe) {
@@ -66,7 +66,7 @@ export default function Login() {
     
     setLoading(true);
     try {
-      await base44.auth.loginViaEmailPassword(savedEmail, savedPassword);
+      await firebaseClient.auth.loginViaEmailPassword(savedEmail, savedPassword);
       window.location.href = "/driver-app";
     } catch (err) {
       setError("Biometric login failed. Please login normally.");
@@ -78,7 +78,7 @@ export default function Login() {
   };
 
   const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", "/driver-app");
+    firebaseClient.auth.loginWithProvider("google", "/driver-app");
   };
 
   return (

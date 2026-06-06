@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,7 +22,7 @@ export default function DriverSuggestions({ pickupLat, pickupLng, onDriverSelect
   const fetchSuggestions = async () => {
     setLoading(true);
     try {
-      const response = await base44.functions.invoke("suggestNearestDriver", {
+      const response = await firebaseClient.functions.invoke("suggestNearestDriver", {
         pickup_lat: pickupLat,
         pickup_lng: pickupLng,
       });

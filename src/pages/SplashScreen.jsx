@@ -28,7 +28,7 @@ export default function SplashScreen() {
       >
         {/* Logo */}
         <motion.img
-          src="https://media.base44.com/images/public/6a0c20d4cd4c2ab03134bc86/0e79de0ab_ChatGPTImageMay19202602_44_02AM.png"
+          src="https://media.firebaseClient.com/images/public/6a0c20d4cd4c2ab03134bc86/0e79de0ab_ChatGPTImageMay19202602_44_02AM.png"
           alt="HY3N Driver Logo"
           className="w-28 h-28 rounded-3xl object-cover shadow-2xl shadow-primary/30"
           initial={{ y: 20, opacity: 0 }}

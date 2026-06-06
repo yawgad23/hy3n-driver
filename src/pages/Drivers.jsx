@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import MobileSelect from "@/components/ui/MobileSelect";
@@ -15,7 +15,7 @@ export default function Drivers() {
 
   const { data: drivers = [], isLoading } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.DriverProfile.list("-created_date"),
+    queryFn: () => firebaseClient.entities.DriverProfile.list("-created_date"),
   });
 
   const filtered = drivers.filter(d => {

@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { CheckSquare, X, Download, Calendar, MapPin } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -41,7 +41,7 @@ export default function BulkTripActions({ selectedTrips, onBulkUpdate }) {
     try {
       await Promise.all(
         selectedTrips.map(tripId =>
-          base44.entities.Ride.update(tripId, { status: actionType })
+          firebaseClient.entities.Ride.update(tripId, { status: actionType })
         )
       );
       

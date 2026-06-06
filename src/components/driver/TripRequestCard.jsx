@@ -8,7 +8,7 @@ import {
   MessageSquare, Check, X, User, Star, Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { toast } from "sonner";
 
 const SWIPE_THRESHOLD = 100;
@@ -28,7 +28,7 @@ export default function TripRequestCard({ trip, onAccept, onDecline, queueMode =
   const handleAccept = async () => {
     setAccepting(true);
     try {
-      const response = await base44.functions.invoke("handleTripResponse", {
+      const response = await firebaseClient.functions.invoke("handleTripResponse", {
         tripId: trip.id,
         action: "accept",
       });
@@ -46,7 +46,7 @@ export default function TripRequestCard({ trip, onAccept, onDecline, queueMode =
   const handleDecline = async () => {
     setDeclining(true);
     try {
-      const response = await base44.functions.invoke("handleTripResponse", {
+      const response = await firebaseClient.functions.invoke("handleTripResponse", {
         tripId: trip.id,
         action: "decline",
       });

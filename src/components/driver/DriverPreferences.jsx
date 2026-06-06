@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 
 export default function DriverPreferences({ driver }) {
   const [deleting, setDeleting] = useState(false);
@@ -27,10 +27,10 @@ export default function DriverPreferences({ driver }) {
   const handleDeleteAccount = async () => {
     setDeleting(true);
     if (driver?.id) {
-      await base44.entities.DriverProfile.delete(driver.id);
+      await firebaseClient.entities.DriverProfile.delete(driver.id);
     }
     toast.success("Account data deleted. You have been signed out.");
-    setTimeout(() => base44.auth.logout("/"), 1500);
+    setTimeout(() => firebaseClient.auth.logout("/"), 1500);
   };
 
   const [prefs, setPrefs] = useState({

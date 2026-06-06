@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { base44, onAuthStateChange } from '@/api/base44Client';
+import { firebaseClient, onAuthStateChange } from '@/api/firebaseClient';
 
 const AuthContext = createContext();
 
@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
   const checkUserAuth = async () => {
     try {
       setIsLoadingAuth(true);
-      const currentUser = await base44.auth.me();
+      const currentUser = await firebaseClient.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
       setAuthError(null);
@@ -61,18 +61,18 @@ export const AuthProvider = ({ children }) => {
 
   const logout = (shouldRedirect = true) => {
     if (shouldRedirect && typeof shouldRedirect === 'string') {
-      base44.auth.logout(shouldRedirect);
+      firebaseClient.auth.logout(shouldRedirect);
     } else if (shouldRedirect === true) {
-      base44.auth.logout('/login');
+      firebaseClient.auth.logout('/login');
     } else {
-      base44.auth.logout();
+      firebaseClient.auth.logout();
     }
     setUser(null);
     setIsAuthenticated(false);
   };
 
   const navigateToLogin = () => {
-    base44.auth.redirectToLogin(window.location.href);
+    firebaseClient.auth.redirectToLogin(window.location.href);
   };
 
   return (

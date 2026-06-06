@@ -8,7 +8,7 @@ import {
   XCircle, User, Star, Navigation, Clock, DollarSign
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import TripRequestCard from "./TripRequestCard";
 import DriverMessageDialog from "./DriverMessageDialog";
@@ -41,14 +41,14 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
 
   const { data: pendingTrips } = useQuery({
     queryKey: ["pending-rides"],
-    queryFn: () => base44.entities.Ride.filter({ status: "matched", driver_id: driver?.user_id }),
+    queryFn: () => firebaseClient.entities.Ride.filter({ status: "matched", driver_id: driver?.user_id }),
     refetchInterval: 5000,
     enabled: isOnline && !!driver?.user_id,
   });
 
   const { data: myTrips = [] } = useQuery({
     queryKey: ["driver-rides", driver?.id],
-    queryFn: () => base44.entities.Ride.filter({ driver_id: driver?.user_id }),
+    queryFn: () => firebaseClient.entities.Ride.filter({ driver_id: driver?.user_id }),
     enabled: !!driver?.user_id,
   });
 
@@ -63,7 +63,7 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
       driver?.vehicle_model?.toLowerCase().includes("kantanka hyen") &&
       trip.trip_type !== "comfort"
     ) {
-      await base44.entities.Ride.update(trip.id, { category: "comfort" });
+      await firebaseClient.entities.Ride.update(trip.id, { category: "comfort" });
     }
 
     const newQueue = [...multiStopQueue, trip];
@@ -131,13 +131,13 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
 
   const handleCompleteTrip = async () => {
     if (!currentTrip) return;
-    await base44.entities.Ride.update(currentTrip.id, { status: "completed" });
+    await firebaseClient.entities.Ride.update(currentTrip.id, { status: "completed" });
     toast.success("Trip completed!");
     setShowRatingDialog(true);
   };
 
   const handlePassengerRating = async ({ rating, remarks, foundItem, itemDescription }) => {
-    await base44.entities.Ride.update(currentTrip.id, {
+    await firebaseClient.entities.Ride.update(currentTrip.id, {
       driver_rating: rating,
       driver_feedback: remarks,
     });
@@ -156,7 +156,7 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline }) {
   };
 
   const handleCancelTrip = async () => {
-    await base44.entities.Ride.update(currentTrip.id, { status: "cancelled" });
+    await firebaseClient.entities.Ride.update(currentTrip.id, { status: "cancelled" });
     toast.info("Trip cancelled");
     setCurrentTrip(null);
     queryClient.invalidateQueries({ queryKey: ["pending-rides"] });

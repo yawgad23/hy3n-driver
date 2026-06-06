@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { firebaseClient } from '@/api/firebaseClient';
 import { requestNotificationPermission, showNotification, playNotificationSound } from '@/lib/notifications';
 
 export default function useFleetNotifications() {
@@ -19,7 +19,7 @@ export default function useFleetNotifications() {
       }
 
       // Subscribe to Trip changes
-      const unsubscribeTrips = base44.entities.Ride.subscribe((event) => {
+      const unsubscribeTrips = firebaseClient.entities.Ride.subscribe((event) => {
         if (event.type === 'create' || event.type === 'update') {
           const trip = event.data;
           const oldStatus = lastTripStatusRef.current.get(trip.id);
@@ -42,7 +42,7 @@ export default function useFleetNotifications() {
       });
 
       // Subscribe to Driver changes
-      const unsubscribeDrivers = base44.entities.DriverProfile.subscribe((event) => {
+      const unsubscribeDrivers = firebaseClient.entities.DriverProfile.subscribe((event) => {
         if (event.type === 'update') {
           const driver = event.data;
           const oldStatus = lastDriverStatusRef.current.get(driver.id);
@@ -70,12 +70,12 @@ export default function useFleetNotifications() {
       // Initial data load
       const loadInitialData = async () => {
         try {
-          const trips = await base44.entities.Ride.list();
+          const trips = await firebaseClient.entities.Ride.list();
           trips.forEach(trip => {
             lastTripStatusRef.current.set(trip.id, trip.status);
           });
           
-          const drivers = await base44.entities.DriverProfile.list();
+          const drivers = await firebaseClient.entities.DriverProfile.list();
           drivers.forEach(driver => {
             lastDriverStatusRef.current.set(driver.id, driver.status);
           });

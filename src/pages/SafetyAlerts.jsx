@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { motion } from "framer-motion";
 import {
   ShieldAlert, AlertTriangle, CheckCircle, Clock,
@@ -36,7 +36,7 @@ export default function SafetyAlerts() {
 
   const { data: alerts = [], isLoading } = useQuery({
     queryKey: ["safety-alerts"],
-    queryFn: () => base44.entities.SafetyAlert.list("-created_date"),
+    queryFn: () => firebaseClient.entities.SafetyAlert.list("-created_date"),
   });
 
   const handleUpdate = () => {

@@ -1,39 +1,33 @@
 /**
- * Firebase drop-in replacement for base44Client.js
- * 
- * This module exports a `base44` object that mimics the exact same API surface
- * as the @base44/sdk client, but uses Firebase (Firestore + Auth) under the hood.
+ * Firebase Client — hy3n-driver
  *
- * Supported methods:
- *   base44.entities.<EntityName>.list(orderBy, limit)
- *   base44.entities.<EntityName>.filter(filters, orderBy, limit)
- *   base44.entities.<EntityName>.get(id)
- *   base44.entities.<EntityName>.read(id)
- *   base44.entities.<EntityName>.create(data)
- *   base44.entities.<EntityName>.update(id, data)
- *   base44.entities.<EntityName>.delete(id)
- *   base44.entities.<EntityName>.bulkCreate(records)
- *   base44.entities.<EntityName>.subscribe(callback)
+ * Pure Firebase implementation using Firestore + Auth + Storage.
+ * Exports `firebaseClient` with the following API:
  *
- *   base44.auth.me()
- *   base44.auth.isAuthenticated()
- *   base44.auth.loginViaEmailPassword(email, password)
- *   base44.auth.loginWithProvider(provider, redirectTo)
- *   base44.auth.register({ email, password })
- *   base44.auth.verifyOtp({ email, otpCode })  -- not needed in Firebase (email verification is separate)
- *   base44.auth.resendOtp(email)
- *   base44.auth.setToken(token)
- *   base44.auth.logout(redirectTo)
- *   base44.auth.redirectToLogin(from)
- *   base44.auth.resetPasswordRequest(email)
- *   base44.auth.resetPassword({ resetToken, newPassword })
+ *   firebaseClient.entities.<EntityName>.list(orderBy, limit)
+ *   firebaseClient.entities.<EntityName>.filter(filters, orderBy, limit)
+ *   firebaseClient.entities.<EntityName>.get(id)
+ *   firebaseClient.entities.<EntityName>.read(id)
+ *   firebaseClient.entities.<EntityName>.create(data)
+ *   firebaseClient.entities.<EntityName>.update(id, data)
+ *   firebaseClient.entities.<EntityName>.delete(id)
+ *   firebaseClient.entities.<EntityName>.bulkCreate(records)
+ *   firebaseClient.entities.<EntityName>.subscribe(callback)
  *
- *   base44.functions.invoke(name, params)
- *   base44.integrations.Core.UploadFile({ file })
- *   base44.integrations.Core.InvokeLLM({ prompt, response_json_schema })
- *   base44.analytics.track({ eventName, properties })
+ *   firebaseClient.auth.me()
+ *   firebaseClient.auth.isAuthenticated()
+ *   firebaseClient.auth.loginViaEmailPassword(email, password)
+ *   firebaseClient.auth.loginWithProvider(provider, redirectTo)
+ *   firebaseClient.auth.register({ email, password })
+ *   firebaseClient.auth.logout(redirectTo)
+ *   firebaseClient.auth.redirectToLogin(from)
+ *   firebaseClient.auth.resetPasswordRequest(email)
+ *   firebaseClient.auth.resetPassword({ resetToken, newPassword })
  *
- *   base44.asServiceRole.entities.<EntityName>.*  -- same as base44.entities (no service role in Firebase client-side)
+ *   firebaseClient.functions.invoke(name, params)
+ *   firebaseClient.integrations.Core.UploadFile({ file })
+ *   firebaseClient.integrations.Core.InvokeLLM({ prompt, response_json_schema })
+ *   firebaseClient.analytics.track({ eventName, properties })
  */
 
 import { initializeApp } from 'firebase/app';
@@ -108,7 +102,7 @@ function snapshotToArray(querySnap) {
 }
 
 /**
- * Convert a base44-style orderBy string (e.g. "-created_date") to Firestore
+ * Convert an orderBy string (e.g. "-created_date") (e.g. "-created_date") to Firestore
  * orderBy parameters.  A leading "-" means descending.
  */
 function parseOrderBy(orderByStr) {
@@ -161,7 +155,7 @@ function createEntityAPI(collectionName) {
   return {
     /**
      * List all documents, optionally ordered and limited.
-     * base44 signature: list(orderBy?, limit?)
+     * Firebase API: list(orderBy?, limit?)
      */
     async list(orderByStr, limitNum) {
       try {
@@ -178,7 +172,7 @@ function createEntityAPI(collectionName) {
 
     /**
      * Filter documents by equality constraints.
-     * base44 signature: filter(filters, orderBy?, limit?)
+     * Firebase API: filter(filters, orderBy?, limit?)
      */
     async filter(filters = {}, orderByStr, limitNum) {
       try {
@@ -201,7 +195,7 @@ function createEntityAPI(collectionName) {
 
     /**
      * Get a single document by ID.
-     * base44 signature: get(id)
+     * Firebase API: get(id)
      */
     async get(id) {
       const docRef = doc(db, collectionName, id);
@@ -211,7 +205,7 @@ function createEntityAPI(collectionName) {
 
     /**
      * Read a single document by ID (alias for get).
-     * base44 signature: read(id)
+     * Firebase API: read(id)
      */
     async read(id) {
       return this.get(id);
@@ -219,7 +213,7 @@ function createEntityAPI(collectionName) {
 
     /**
      * Create a new document.
-     * base44 signature: create(data) → returns created object with id
+     * Firebase API: create(data) → returns created object with id
      */
     async create(data) {
       const payload = {
@@ -234,7 +228,7 @@ function createEntityAPI(collectionName) {
 
     /**
      * Update an existing document by ID.
-     * base44 signature: update(id, data) → returns updated object
+     * Firebase API: update(id, data) → returns updated object
      */
     async update(id, data) {
       const docRef = doc(db, collectionName, id);
@@ -248,7 +242,7 @@ function createEntityAPI(collectionName) {
 
     /**
      * Delete a document by ID.
-     * base44 signature: delete(id)
+     * Firebase API: delete(id)
      */
     async delete(id) {
       const docRef = doc(db, collectionName, id);
@@ -258,7 +252,7 @@ function createEntityAPI(collectionName) {
 
     /**
      * Bulk create multiple documents.
-     * base44 signature: bulkCreate(records[])
+     * Firebase API: bulkCreate(records[])
      */
     async bulkCreate(records) {
       const batch = writeBatch(db);
@@ -280,7 +274,7 @@ function createEntityAPI(collectionName) {
 
     /**
      * Subscribe to real-time changes on a collection.
-     * base44 signature: subscribe(callback) → returns unsubscribe function
+     * Firebase API: subscribe(callback) → returns unsubscribe function
      *
      * The callback receives events in the format:
      *   { type: "create" | "update" | "delete", id, data }
@@ -349,8 +343,8 @@ for (const [entityName, collectionName] of Object.entries(ENTITY_COLLECTIONS)) {
 // ─── Auth API ─────────────────────────────────────────────────────────────────
 
 /**
- * Get the current Firebase user as a base44-compatible user object.
- * base44 user fields used in the apps: id, email, full_name, role
+ * Get the current Firebase user as a Firebase-compatible user object.
+ * Firebase user fields used in the apps: id, email, full_name, role
  */
 async function getCurrentUser() {
   const firebaseUser = auth.currentUser;
@@ -410,7 +404,7 @@ const authAPI = {
   /**
    * Register a new user with email and password.
    * Firebase sends a verification email automatically if configured.
-   * In base44 this triggers an OTP flow; here we just create the account.
+   * Creates a new Firebase Auth account and sends email verification.
    */
   async register({ email, password }) {
     try {
@@ -508,7 +502,7 @@ const authAPI = {
 };
 
 // ─── Functions API ────────────────────────────────────────────────────────────
-// base44.functions.invoke(name, params) → calls a deployed Firebase Cloud Function
+// firebaseClient.functions.invoke(name, params) → calls a deployed Firebase Cloud Function
 const FUNCTIONS_BASE_URL = 'https://us-central1-hy3n26.cloudfunctions.net';
 
 // Local overrides for functions that don't need a backend call
@@ -556,7 +550,7 @@ const integrationsAPI = {
   Core: {
     /**
      * Upload a file to Firebase Storage and return its public URL.
-     * base44 signature: UploadFile({ file }) → { file_url }
+     * Firebase API: UploadFile({ file }) → { file_url }
      */
     async UploadFile({ file }) {
       try {
@@ -581,7 +575,7 @@ const integrationsAPI = {
 
     /**
      * Invoke an LLM via OpenAI API (using the sandbox's pre-configured key).
-     * base44 signature: InvokeLLM({ prompt, response_json_schema }) → result
+     * Firebase API: InvokeLLM({ prompt, response_json_schema }) → result
      */
     async InvokeLLM({ prompt, response_json_schema }) {
       try {
@@ -639,13 +633,13 @@ export function onAuthStateChange(callback) {
 
 // ─── Main Export ──────────────────────────────────────────────────────────────
 
-export const base44 = {
+export const firebaseClient = {
   entities,
   auth: authAPI,
   functions: functionsAPI,
   integrations: integrationsAPI,
   analytics: analyticsAPI,
-  // asServiceRole is the same as base44 in client-side Firebase
+  // asServiceRole is the same as firebaseClient in client-side Firebase
   // (no service role distinction on the client)
   asServiceRole: {
     entities,

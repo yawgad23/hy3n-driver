@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { motion } from "framer-motion";
 import {
   DollarSign, TrendingUp, Calendar, Target, Clock, Award, Gauge
@@ -30,7 +30,7 @@ export default function DriverEarningsDashboard() {
 
   const { data: trips = [], isLoading } = useQuery({
     queryKey: ["trips"],
-    queryFn: () => base44.entities.Ride.list("-created_date"),
+    queryFn: () => firebaseClient.entities.Ride.list("-created_date"),
   });
 
   const COMMISSION_RATE = 0.15;

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { motion } from "framer-motion";
 import { Calendar as CalendarIcon, Clock, Users, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,12 +18,12 @@ export default function Shifts() {
 
   const { data: shifts = [], isLoading: shiftsLoading } = useQuery({
     queryKey: ["shifts"],
-    queryFn: () => base44.entities.Shift.list("-shift_date"),
+    queryFn: () => firebaseClient.entities.Shift.list("-shift_date"),
   });
 
   const { data: drivers = [], isLoading: driversLoading } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.DriverProfile.list(),
+    queryFn: () => firebaseClient.entities.DriverProfile.list(),
   });
 
   // Get week range

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, MapPin } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -61,7 +61,7 @@ export default function AddDriverDialog({ onDriverAdded }) {
       setForm(initialForm);
       
       // Create in background
-      const newDriver = await base44.entities.DriverProfile.create({
+      const newDriver = await firebaseClient.entities.DriverProfile.create({
         ...form,
         ...coords,
         latitude: undefined,

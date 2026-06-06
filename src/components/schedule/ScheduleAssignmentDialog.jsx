@@ -8,7 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar as CalendarIcon, CheckCircle2, XCircle, AlertCircle, Clock } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -49,7 +49,7 @@ export default function ScheduleAssignmentDialog({ open, onOpenChange, selectedD
 
   const loadDrivers = async () => {
     try {
-      const driverList = await base44.entities.DriverProfile.list();
+      const driverList = await firebaseClient.entities.DriverProfile.list();
       setDrivers(driverList.filter(d => d.status !== "suspended"));
     } catch (error) {
       console.error("Failed to load drivers:", error);
@@ -62,7 +62,7 @@ export default function ScheduleAssignmentDialog({ open, onOpenChange, selectedD
       const scheduledDate = new Date(form.scheduled_date);
       
       // Get all schedules for the selected driver around the chosen date
-      const allSchedules = await base44.entities.Schedule.filter({
+      const allSchedules = await firebaseClient.entities.Schedule.filter({
         driver_id: form.driver_id,
         status: ["scheduled", "confirmed", "in_progress"]
       });
@@ -100,7 +100,7 @@ export default function ScheduleAssignmentDialog({ open, onOpenChange, selectedD
     setLoading(true);
     
     try {
-      await base44.entities.Schedule.create({
+      await firebaseClient.entities.Schedule.create({
         ...form,
         end_date: form.end_date || form.scheduled_date,
       });

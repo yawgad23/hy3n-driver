@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
@@ -39,7 +39,7 @@ export default function AddDriverDialog() {
 
   const createDriverMutation = useMutation({
     mutationFn: async (data) => {
-      return await base44.entities.DriverProfile.create(data);
+      return await firebaseClient.entities.DriverProfile.create(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["drivers"] });

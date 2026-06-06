@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { ArrowLeft, MapPin, Clock, DollarSign, Navigation, User, Car, Radio, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,14 +27,14 @@ export default function TripDetails() {
 
   const { data: trip, isLoading } = useQuery({
     queryKey: ["trip", id],
-    queryFn: () => base44.entities.Ride.get(id),
+    queryFn: () => firebaseClient.entities.Ride.get(id),
     enabled: !!id,
   });
 
   // Get driver data for tracking
   const { data: drivers = [] } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.DriverProfile.list(),
+    queryFn: () => firebaseClient.entities.DriverProfile.list(),
     enabled: !!trip?.driver_id,
   });
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { Bell, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,7 +15,7 @@ export default function ShiftAlertsPanel() {
     fetchAlerts();
     
     // Subscribe to driver status changes
-    const unsubscribe = base44.entities.DriverProfile.subscribe(async (event) => {
+    const unsubscribe = firebaseClient.entities.DriverProfile.subscribe(async (event) => {
       if (event.type === "update" && event.changed_fields?.includes("status")) {
         await checkOffScheduleActivity(event.data);
       }
@@ -28,7 +28,7 @@ export default function ShiftAlertsPanel() {
     try {
       // In production, you'd query an Alert entity
       // For now, we'll check active drivers against shifts
-      const drivers = await base44.entities.DriverProfile.filter({ status: "active" });
+      const drivers = await firebaseClient.entities.DriverProfile.filter({ status: "active" });
       const activeAlerts = [];
 
       for (const driver of drivers) {
@@ -46,7 +46,7 @@ export default function ShiftAlertsPanel() {
 
     try {
       const today = new Date().toISOString().split("T")[0];
-      const shifts = await base44.entities.Shift.filter({
+      const shifts = await firebaseClient.entities.Shift.filter({
         driver_id: driver.id,
         shift_date: today,
       });
@@ -92,7 +92,7 @@ export default function ShiftAlertsPanel() {
 
   const handleClockIn = async (shiftId) => {
     try {
-      await base44.entities.Shift.update(shiftId, {
+      await firebaseClient.entities.Shift.update(shiftId, {
         status: "active",
         actual_start_time: new Date().toISOString(),
       });

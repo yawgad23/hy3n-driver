@@ -13,7 +13,7 @@ import {
   Users,
   Navigation
 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 
 export default function DispatchAnalytics() {
   const [stats, setStats] = useState({
@@ -28,8 +28,8 @@ export default function DispatchAnalytics() {
     setLoading(true);
     try {
       const [drivers, trips] = await Promise.all([
-        base44.entities.DriverProfile.list(),
-        base44.entities.Ride.list(),
+        firebaseClient.entities.DriverProfile.list(),
+        firebaseClient.entities.Ride.list(),
       ]);
 
       const activeDrivers = drivers.filter(d => 

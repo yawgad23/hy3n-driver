@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { motion } from "framer-motion";
 import { Calendar, Plus, Clock, User, MapPin, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,12 +25,12 @@ export default function Schedule() {
 
   const { data: schedules = [], isLoading } = useQuery({
     queryKey: ["schedules"],
-    queryFn: () => base44.entities.Schedule.list("-scheduled_date"),
+    queryFn: () => firebaseClient.entities.Schedule.list("-scheduled_date"),
   });
 
   const { data: drivers = [] } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.DriverProfile.list(),
+    queryFn: () => firebaseClient.entities.DriverProfile.list(),
   });
 
   const filteredSchedules = filterStatus === "all" 
@@ -69,7 +69,7 @@ export default function Schedule() {
 
   const updateScheduleStatus = async (scheduleId, newStatus) => {
     try {
-      await base44.entities.Schedule.update(scheduleId, { status: newStatus });
+      await firebaseClient.entities.Schedule.update(scheduleId, { status: newStatus });
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
       toast.success("Schedule updated");
     } catch (error) {
@@ -79,7 +79,7 @@ export default function Schedule() {
 
   const deleteSchedule = async (scheduleId) => {
     try {
-      await base44.entities.Schedule.delete(scheduleId);
+      await firebaseClient.entities.Schedule.delete(scheduleId);
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
       setSelectedSchedule(null);
       toast.success("Assignment deleted");

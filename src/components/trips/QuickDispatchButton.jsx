@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -20,7 +20,7 @@ export default function QuickDispatchButton({ trip, onDispatchSuccess }) {
 
     setLoading(true);
     try {
-      const response = await base44.functions.invoke("suggestNearestDriver", {
+      const response = await firebaseClient.functions.invoke("suggestNearestDriver", {
         pickup_lat: trip.pickup_lat,
         pickup_lng: trip.pickup_lng,
         trip_id: trip.id,
@@ -39,7 +39,7 @@ export default function QuickDispatchButton({ trip, onDispatchSuccess }) {
 
   const handleQuickAssign = async (driver) => {
     try {
-      await base44.entities.Ride.update(trip.id, {
+      await firebaseClient.entities.Ride.update(trip.id, {
         driver_id: driver.id,
         status: "in_progress",
       });

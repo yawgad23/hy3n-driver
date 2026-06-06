@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle } from "lucide-react";
@@ -15,13 +15,13 @@ export default function GenerateCommissionDialog({ open, onOpenChange }) {
 
   const { data: drivers = [] } = useQuery({
     queryKey: ["drivers-for-commission"],
-    queryFn: () => base44.entities.DriverProfile.filter({ status: "active" }),
+    queryFn: () => firebaseClient.entities.DriverProfile.filter({ status: "active" }),
     enabled: open,
   });
 
   const { data: trips = [] } = useQuery({
     queryKey: ["trips-for-commission"],
-    queryFn: () => base44.entities.Ride.filter({ status: "completed" }),
+    queryFn: () => firebaseClient.entities.Ride.filter({ status: "completed" }),
     enabled: open,
   });
 
@@ -71,7 +71,7 @@ export default function GenerateCommissionDialog({ open, onOpenChange }) {
       return;
     }
 
-    await base44.entities.CommissionRecord.bulkCreate(records);
+    await firebaseClient.entities.CommissionRecord.bulkCreate(records);
     toast.success(`Generated ${records.length} commission records for ${weekLabel}`);
     queryClient.invalidateQueries({ queryKey: ["commission-records"] });
     setGenerating(false);

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { motion } from "framer-motion";
 import { TrendingUp, Calendar, Clock, DollarSign, Car, Users } from "lucide-react";
 import {
@@ -19,12 +19,12 @@ import StatsCard from "../components/dashboard/StatsCard";
 export default function Analytics() {
   const { data: drivers = [], isLoading: driversLoading } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.DriverProfile.list(),
+    queryFn: () => firebaseClient.entities.DriverProfile.list(),
   });
 
   const { data: trips = [], isLoading: tripsLoading } = useQuery({
     queryKey: ["trips"],
-    queryFn: () => base44.entities.Ride.list("-trip_date"),
+    queryFn: () => firebaseClient.entities.Ride.list("-trip_date"),
   });
 
   if (driversLoading || tripsLoading) {

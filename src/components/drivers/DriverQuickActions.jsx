@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical, Phone, MessageCircle, MapPin, Calendar, UserX, CheckCircle, Clock } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -48,7 +48,7 @@ export default function DriverQuickActions({ driver, onStatusChange }) {
     
     setLoading(true);
     try {
-      await base44.entities.DriverProfile.update(driver.id, { status: "suspended" });
+      await firebaseClient.entities.DriverProfile.update(driver.id, { status: "suspended" });
       queryClient.invalidateQueries({ queryKey: ["drivers"] });
       onStatusChange?.("suspended");
       toast.success("Driver suspended");
@@ -62,7 +62,7 @@ export default function DriverQuickActions({ driver, onStatusChange }) {
   const handleActivate = async () => {
     setLoading(true);
     try {
-      await base44.entities.DriverProfile.update(driver.id, { status: "active" });
+      await firebaseClient.entities.DriverProfile.update(driver.id, { status: "active" });
       queryClient.invalidateQueries({ queryKey: ["drivers"] });
       onStatusChange?.("active");
       toast.success("Driver activated");

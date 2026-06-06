@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Zap, TrendingUp, Clock, MapPin, Loader2 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { motion } from "framer-motion";
 
 const DEMAND_LABELS = { high: "High Demand", medium: "Moderate", low: "Low Demand" };
@@ -73,7 +73,7 @@ Output a JSON object with exactly this structure:
 }`;
 
       try {
-        const result = await base44.integrations.Core.InvokeLLM({
+        const result = await firebaseClient.integrations.Core.InvokeLLM({
           prompt,
           response_json_schema: {
             type: "object",

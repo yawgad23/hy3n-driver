@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { ArrowLeft, Phone, Mail, Car, MapPin, Star, DollarSign, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,12 +26,12 @@ export default function DriverDetails() {
 
   const { data: driver, isLoading } = useQuery({
     queryKey: ["driver", id],
-    queryFn: () => base44.entities.DriverProfile.get(id),
+    queryFn: () => firebaseClient.entities.DriverProfile.get(id),
     enabled: !!id,
   });
 
   const updateDriverMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.DriverProfile.update(id, data),
+    mutationFn: ({ id, data }) => firebaseClient.entities.DriverProfile.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["driver", id] });
     },

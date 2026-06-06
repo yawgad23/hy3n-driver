@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,11 +34,11 @@ export default function DriverRegister() {
 
   // If already logged in, skip account creation steps
   useEffect(() => {
-    base44.auth.me().then(user => {
+    firebaseClient.auth.me().then(user => {
       if (user) {
         setEmail(user.email || "");
         // Check if already has a Driver record
-        base44.entities.DriverProfile.filter({ email: user.email }).then(profiles => {
+        firebaseClient.entities.DriverProfile.filter({ email: user.email }).then(profiles => {
           if (profiles.length > 0) {
             window.location.href = "/driver-app";
           } else {
@@ -55,13 +55,13 @@ export default function DriverRegister() {
     if (password !== confirmPassword) { setError("Passwords do not match"); return; }
     setLoading(true);
     try {
-      await base44.auth.register({ email, password });
+      await firebaseClient.auth.register({ email, password });
       setStep(2);
     } catch (err) {
       if (err.code === 'auth/email-already-in-use' || err.message.includes('email-already-in-use')) {
         // If user exists, try to log them in instead
         try {
-          await base44.auth.loginViaEmailPassword(email, password);
+          await firebaseClient.auth.loginViaEmailPassword(email, password);
           setStep(3); // Skip OTP and go straight to profile
           return;
         } catch (loginErr) {
@@ -79,10 +79,10 @@ export default function DriverRegister() {
     setError("");
     setLoading(true);
     try {
-      const result = await base44.auth.verifyOtp({ email, otpCode });
+      const result = await firebaseClient.auth.verifyOtp({ email, otpCode });
       const token = result?.access_token || result?.data?.access_token;
       if (token) {
-        base44.auth.setToken(token);
+        firebaseClient.auth.setToken(token);
       }
       setStep(3);
     } catch (err) {
@@ -94,7 +94,7 @@ export default function DriverRegister() {
 
   const handleResend = async () => {
     try {
-      await base44.auth.resendOtp(email);
+      await firebaseClient.auth.resendOtp(email);
       toast({ title: "Code sent", description: "Check your email for the new code." });
     } catch (err) {
       setError(err.message || "Failed to resend code");
@@ -102,13 +102,13 @@ export default function DriverRegister() {
   };
 
   const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", "/driver-register");
+    firebaseClient.auth.loginWithProvider("google", "/driver-register");
   };
 
   const uploadFile = async (file) => {
     if (!file) return null;
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await firebaseClient.integrations.Core.UploadFile({ file });
       return file_url;
     } catch {
       return null;
@@ -129,10 +129,10 @@ export default function DriverRegister() {
         uploadFile(roadworthyPhotoFile),
       ]);
 
-      const user = await base44.auth.me();
+      const user = await firebaseClient.auth.me();
       
       // Check if profile already exists to avoid duplicates
-      const existingProfiles = await base44.entities.DriverProfile.filter({ user_id: user.id });
+      const existingProfiles = await firebaseClient.entities.DriverProfile.filter({ user_id: user.id });
       
       const profileData = {
         user_id: user.id,
@@ -155,9 +155,9 @@ export default function DriverRegister() {
       };
 
       if (existingProfiles.length > 0) {
-        await base44.entities.DriverProfile.update(existingProfiles[0].id, profileData);
+        await firebaseClient.entities.DriverProfile.update(existingProfiles[0].id, profileData);
       } else {
-        await base44.entities.DriverProfile.create(profileData);
+        await firebaseClient.entities.DriverProfile.create(profileData);
       }
 
       setStep(5);

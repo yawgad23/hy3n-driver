@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { motion } from "framer-motion";
 import { TrendingUp, Clock, DollarSign, Star, Car, CheckCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,12 +7,12 @@ import { Card, CardContent } from "@/components/ui/card";
 export default function PerformanceMetrics() {
   const { data: drivers = [] } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.DriverProfile.list(),
+    queryFn: () => firebaseClient.entities.DriverProfile.list(),
   });
 
   const { data: trips = [] } = useQuery({
     queryKey: ["trips"],
-    queryFn: () => base44.entities.Ride.list(),
+    queryFn: () => firebaseClient.entities.Ride.list(),
   });
 
   // Calculate metrics

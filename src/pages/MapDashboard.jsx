@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { motion } from "framer-motion";
 import { Users, MapPin, Car, Navigation, Radio, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -29,12 +29,12 @@ export default function MapDashboard() {
 
   const { data: drivers = [], isLoading: driversLoading } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.DriverProfile.list("-created_date"),
+    queryFn: () => firebaseClient.entities.DriverProfile.list("-created_date"),
   });
 
   const { data: trips = [], isLoading: tripsLoading } = useQuery({
     queryKey: ["trips"],
-    queryFn: () => base44.entities.Ride.list("-created_date"),
+    queryFn: () => firebaseClient.entities.Ride.list("-created_date"),
   });
 
   // Enable real-time tracking for all active drivers

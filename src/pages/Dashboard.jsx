@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { Users, MapPin, DollarSign, TrendingUp, Navigation } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -19,12 +19,12 @@ export default function Dashboard() {
 
   const { data: drivers = [], isLoading: driversLoading } = useQuery({
     queryKey: ["drivers"],
-    queryFn: () => base44.entities.DriverProfile.list("-created_date"),
+    queryFn: () => firebaseClient.entities.DriverProfile.list("-created_date"),
   });
 
   const { data: trips = [], isLoading: tripsLoading } = useQuery({
     queryKey: ["trips"],
-    queryFn: () => base44.entities.Ride.list("-created_date", 20),
+    queryFn: () => firebaseClient.entities.Ride.list("-created_date", 20),
   });
 
   const handleRefresh = async () => {

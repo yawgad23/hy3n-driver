@@ -27,7 +27,7 @@ export default function Sidebar() {
       {/* Logo */}
       <Link to="/" className="flex items-center gap-3 mb-10">
         <img
-          src="https://media.base44.com/images/public/6a0c20d4cd4c2ab03134bc86/0e79de0ab_ChatGPTImageMay19202602_44_02AM.png"
+          src="https://media.firebaseClient.com/images/public/6a0c20d4cd4c2ab03134bc86/0e79de0ab_ChatGPTImageMay19202602_44_02AM.png"
           alt="HY3N Driver Logo"
           className="w-12 h-12 rounded-xl object-cover"
         />

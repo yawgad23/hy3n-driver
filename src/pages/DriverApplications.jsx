@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ export default function DriverApplications() {
 
   const { data: applications = [] } = useQuery({
     queryKey: ["driver-applications"],
-    queryFn: () => base44.entities.DriverProfile.list("-created_date", 100),
+    queryFn: () => firebaseClient.entities.DriverProfile.list("-created_date", 100),
   });
 
   const filtered = applications.filter((a) => {
@@ -41,7 +41,7 @@ export default function DriverApplications() {
   const handleApprove = async (app) => {
     setLoading(true);
     try {
-      await base44.entities.DriverProfile.update(app.id, {
+      await firebaseClient.entities.DriverProfile.update(app.id, {
         approval_status: "approved",
       });
       queryClient.invalidateQueries({ queryKey: ["driver-applications"] });
@@ -57,7 +57,7 @@ export default function DriverApplications() {
   const handleReject = async (app) => {
     setLoading(true);
     try {
-      await base44.entities.DriverProfile.update(app.id, {
+      await firebaseClient.entities.DriverProfile.update(app.id, {
         approval_status: "rejected",
       });
       queryClient.invalidateQueries({ queryKey: ["driver-applications"] });

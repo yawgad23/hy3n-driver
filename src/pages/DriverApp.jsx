@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,16 +30,16 @@ export default function DriverApp() {
   const { data: driver, isLoading } = useQuery({
     queryKey: ["driver-profile"],
     queryFn: async () => {
-      const user = await base44.auth.me();
+      const user = await firebaseClient.auth.me();
       if (!user) return null;
-      const profiles = await base44.entities.DriverProfile.filter({ email: user.email });
+      const profiles = await firebaseClient.entities.DriverProfile.filter({ email: user.email });
       return profiles[0] || null;
     },
   });
 
   const { data: allTrips = [] } = useQuery({
     queryKey: ["driver-rides", driver?.id],
-    queryFn: () => base44.entities.Ride.filter({ driver_id: driver?.id }),
+    queryFn: () => firebaseClient.entities.Ride.filter({ driver_id: driver?.id }),
     enabled: !!driver?.id,
   });
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { firebaseClient } from "@/api/firebaseClient";
 
 export function useSimulatedDriverTracking(enabledDrivers) {
   const intervalRef = useRef(null);
@@ -103,7 +103,7 @@ export function useSimulatedDriverTracking(enabledDrivers) {
         try {
           await Promise.all(
             updates.map(update => 
-              base44.entities.DriverProfile.update(update.id, {
+              firebaseClient.entities.DriverProfile.update(update.id, {
                 latitude: update.latitude,
                 longitude: update.longitude,
                 last_location_update: update.last_location_update,
