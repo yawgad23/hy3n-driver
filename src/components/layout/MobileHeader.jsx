@@ -30,7 +30,7 @@ export default function MobileHeader() {
       {isRoot ? (
         <Link to="/" className="flex items-center gap-2.5">
           <img
-            src="https://media.base44.com/images/public/6a0c20d4cd4c2ab03134bc86/0e79de0ab_ChatGPTImageMay19202602_44_02AM.png"
+            src="/hy3n-logo.jpg"
             alt="HY3N Driver Logo"
             className="w-8 h-8 rounded-lg object-cover"
           />

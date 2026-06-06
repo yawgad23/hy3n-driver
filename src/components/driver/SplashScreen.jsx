@@ -22,7 +22,7 @@ export default function SplashScreen({ onComplete, onDone }) {
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
           <img
-            src="https://media.base44.com/images/public/6a0c20d4cd4c2ab03134bc86/37ea7faf9_ChatGPTImageMay19202605_32_12AM.png"
+            src="/hy3n-logo.jpg"
             alt="Hy3N Driver"
             className="h-64 w-auto mx-auto"
           />
