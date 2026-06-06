@@ -39,6 +39,8 @@ import {
   sendPasswordResetEmail,
   GoogleAuthProvider,
   signInWithRedirect,
+  signInWithPopup,
+  getRedirectResult,
   onAuthStateChanged,
   confirmPasswordReset,
 } from 'firebase/auth';
@@ -388,14 +390,28 @@ const authAPI = {
 
   /**
    * Sign in with a provider (currently supports "google").
-   * Uses redirect flow.
+   * Uses popup flow (works better on mobile PWA).
    */
-  loginWithProvider(provider, redirectTo = '/') {
+  async loginWithProvider(provider, redirectTo = '/') {
     if (provider === 'google') {
       const googleProvider = new GoogleAuthProvider();
-      // Store redirect destination
-      sessionStorage.setItem('auth_redirect', redirectTo);
-      signInWithRedirect(auth, googleProvider);
+      googleProvider.addScope('email');
+      googleProvider.addScope('profile');
+      try {
+        // Try popup first (better UX on mobile)
+        const result = await signInWithPopup(auth, googleProvider);
+        if (result.user) {
+          window.location.href = redirectTo;
+        }
+      } catch (popupErr) {
+        // Fallback to redirect if popup is blocked
+        if (popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/popup-closed-by-user') {
+          sessionStorage.setItem('auth_redirect', redirectTo);
+          signInWithRedirect(auth, googleProvider);
+        } else {
+          throw popupErr;
+        }
+      }
     } else {
       throw new Error(`Provider "${provider}" is not supported`);
     }

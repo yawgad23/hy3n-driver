@@ -5,7 +5,7 @@ import { getAuth, onAuthStateChanged, reload, sendEmailVerification } from "fire
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Car, Mail, Lock, Loader2, Phone, User, FileText, Upload, CheckCircle, Clock, RefreshCw } from "lucide-react";
+import { Car, Mail, Lock, Loader2, Phone, User, FileText, Upload, CheckCircle, Clock, RefreshCw, Camera } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
@@ -21,8 +21,10 @@ export default function DriverRegister() {
   const [vehicleModel, setVehicleModel] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
   const [momoNumber, setMomoNumber] = useState("+233");
-  const [ghanaCardFile, setGhanaCardFile] = useState(null);
-  const [licensePhotoFile, setLicensePhotoFile] = useState(null);
+  const [ghanaCardFrontFile, setGhanaCardFrontFile] = useState(null);
+  const [ghanaCardBackFile, setGhanaCardBackFile] = useState(null);
+  const [licenseFrontFile, setLicenseFrontFile] = useState(null);
+  const [licenseBackFile, setLicenseBackFile] = useState(null);
   const [vehiclePhotoFile, setVehiclePhotoFile] = useState(null);
   const [insurancePhotoFile, setInsurancePhotoFile] = useState(null);
   const [roadworthyPhotoFile, setRoadworthyPhotoFile] = useState(null);
@@ -38,12 +40,16 @@ export default function DriverRegister() {
     firebaseClient.auth.me().then(user => {
       if (user) {
         setEmail(user.email || "");
-        firebaseClient.entities.DriverProfile.filter({ email: user.email }).then(profiles => {
+        // Pre-fill full name from Google profile if available
+        const firebaseUser = auth.currentUser;
+        if (firebaseUser?.displayName && !fullName) {
+          setFullName(firebaseUser.displayName);
+        }
+        firebaseClient.entities.DriverProfile.filter({ user_id: user.id }).then(profiles => {
           if (profiles.length > 0) {
             window.location.href = "/driver-app";
           } else {
-            // Check if email is verified
-            const firebaseUser = auth.currentUser;
+            // Google users have emailVerified = true, skip step 2
             if (firebaseUser && !firebaseUser.emailVerified) {
               setStep(2);
             } else {
@@ -163,8 +169,22 @@ export default function DriverRegister() {
     }
   };
 
-  const handleGoogle = () => {
-    firebaseClient.auth.loginWithProvider("google", "/driver-register");
+  const handleGoogle = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      await firebaseClient.auth.loginWithProvider("google", "/driver-register");
+    } catch (err) {
+      if (err.code === 'auth/operation-not-allowed') {
+        setError("Google Sign-In is not enabled. Please use email/password instead.");
+      } else if (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user') {
+        // User closed the popup — not an error
+      } else {
+        setError(err.message || "Google sign-in failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const uploadFile = async (file) => {
@@ -182,9 +202,11 @@ export default function DriverRegister() {
     setError("");
     setLoading(true);
     try {
-      const [ghanaCardUrl, licensePhotoUrl, vehiclePhotoUrl, insurancePhotoUrl, roadworthyPhotoUrl] = await Promise.all([
-        uploadFile(ghanaCardFile),
-        uploadFile(licensePhotoFile),
+      const [ghanaCardFrontUrl, ghanaCardBackUrl, licenseFrontUrl, licenseBackUrl, vehiclePhotoUrl, insurancePhotoUrl, roadworthyPhotoUrl] = await Promise.all([
+        uploadFile(ghanaCardFrontFile),
+        uploadFile(ghanaCardBackFile),
+        uploadFile(licenseFrontFile),
+        uploadFile(licenseBackFile),
         uploadFile(vehiclePhotoFile),
         uploadFile(insurancePhotoFile),
         uploadFile(roadworthyPhotoFile),
@@ -203,8 +225,12 @@ export default function DriverRegister() {
         vehicle_make: vehicleMake,
         vehicle_model: vehicleModel,
         license_plate: vehiclePlate,
-        ghana_card_url: ghanaCardUrl,
-        drivers_license_url: licensePhotoUrl,
+        ghana_card_front_url: ghanaCardFrontUrl,
+        ghana_card_back_url: ghanaCardBackUrl,
+        ghana_card_url: ghanaCardFrontUrl, // backward compat
+        drivers_license_front_url: licenseFrontUrl,
+        drivers_license_back_url: licenseBackUrl,
+        drivers_license_url: licenseFrontUrl, // backward compat
         vehicle_registration_url: vehiclePhotoUrl,
         insurance_url: insurancePhotoUrl,
         roadworthy_url: roadworthyPhotoUrl,
@@ -240,30 +266,56 @@ export default function DriverRegister() {
 
   const FileUploadField = ({ label, file, setFile, fieldId }) => (
     <div className="space-y-2">
-      <Label htmlFor={fieldId}>{label}</Label>
-      <label
-        htmlFor={fieldId}
-        className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
-      >
-        {file ? (
+      <Label>{label}</Label>
+      {file ? (
+        <div className="flex items-center justify-between w-full px-4 py-3 border border-primary/40 bg-primary/5 rounded-xl">
           <div className="flex items-center gap-2 text-sm text-primary">
-            <CheckCircle className="w-5 h-5" />
-            <span className="font-medium">{file.name}</span>
+            <CheckCircle className="w-5 h-5 shrink-0" />
+            <span className="font-medium truncate max-w-[180px]">{file.name}</span>
           </div>
-        ) : (
-          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-            <Upload className="w-6 h-6" />
-            <span className="text-xs">Tap to upload photo</span>
-          </div>
-        )}
-        <input
-          id={fieldId}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => setFile(e.target.files[0] || null)}
-        />
-      </label>
+          <button
+            type="button"
+            onClick={() => setFile(null)}
+            className="text-xs text-muted-foreground hover:text-destructive transition ml-2 shrink-0"
+          >
+            Remove
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2">
+          {/* Upload from device */}
+          <label
+            htmlFor={fieldId + "-upload"}
+            className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
+          >
+            <Upload className="w-5 h-5 text-muted-foreground mb-1" />
+            <span className="text-xs text-muted-foreground text-center leading-tight">Upload<br/>from device</span>
+            <input
+              id={fieldId + "-upload"}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => setFile(e.target.files[0] || null)}
+            />
+          </label>
+          {/* Take photo with camera */}
+          <label
+            htmlFor={fieldId + "-camera"}
+            className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
+          >
+            <Camera className="w-5 h-5 text-muted-foreground mb-1" />
+            <span className="text-xs text-muted-foreground text-center leading-tight">Take<br/>photo</span>
+            <input
+              id={fieldId + "-camera"}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => setFile(e.target.files[0] || null)}
+            />
+          </label>
+        </div>
+      )}
     </div>
   );
 
@@ -291,7 +343,7 @@ export default function DriverRegister() {
 
   // Step 4: Document Upload
   if (step === 4) {
-    const canSubmit = ghanaCardFile && licensePhotoFile && vehiclePhotoFile && insurancePhotoFile && roadworthyPhotoFile;
+    const canSubmit = ghanaCardFrontFile && ghanaCardBackFile && licenseFrontFile && licenseBackFile && vehiclePhotoFile && insurancePhotoFile && roadworthyPhotoFile;
     return (
       <AuthLayout icon={Upload} title="Upload Documents" subtitle="We need to verify your identity and vehicle">
         {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
@@ -301,8 +353,10 @@ export default function DriverRegister() {
               Please upload all required documents
             </p>
           )}
-          <FileUploadField label="Ghana Card / National ID" file={ghanaCardFile} setFile={setGhanaCardFile} fieldId="ghana-card" />
-          <FileUploadField label="Driver's License Photo" file={licensePhotoFile} setFile={setLicensePhotoFile} fieldId="license-photo" />
+          <FileUploadField label="Ghana Card / National ID — Front" file={ghanaCardFrontFile} setFile={setGhanaCardFrontFile} fieldId="ghana-card-front" />
+          <FileUploadField label="Ghana Card / National ID — Back" file={ghanaCardBackFile} setFile={setGhanaCardBackFile} fieldId="ghana-card-back" />
+          <FileUploadField label="Driver's License — Front" file={licenseFrontFile} setFile={setLicenseFrontFile} fieldId="license-front" />
+          <FileUploadField label="Driver's License — Back" file={licenseBackFile} setFile={setLicenseBackFile} fieldId="license-back" />
           <FileUploadField label="Vehicle Photo" file={vehiclePhotoFile} setFile={setVehiclePhotoFile} fieldId="vehicle-photo" />
           <FileUploadField label="Vehicle Insurance Certificate" file={insurancePhotoFile} setFile={setInsurancePhotoFile} fieldId="insurance-photo" />
           <FileUploadField label="Road Worthy Certificate" file={roadworthyPhotoFile} setFile={setRoadworthyPhotoFile} fieldId="roadworthy-photo" />

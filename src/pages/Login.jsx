@@ -77,8 +77,22 @@ export default function Login() {
     }
   };
 
-  const handleGoogle = () => {
-    firebaseClient.auth.loginWithProvider("google", "/driver-app");
+  const handleGoogle = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      await firebaseClient.auth.loginWithProvider("google", "/driver-app");
+    } catch (err) {
+      if (err.code === 'auth/operation-not-allowed') {
+        setError("Google Sign-In is not enabled. Please contact support.");
+      } else if (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user') {
+        // User closed the popup — not an error
+      } else {
+        setError(err.message || "Google sign-in failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
