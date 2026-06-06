@@ -56,7 +56,7 @@ export default function DriverRegister() {
     setLoading(true);
     try {
       await firebaseClient.auth.register({ email, password });
-      setStep(2);
+      setStep(3); // Skip OTP — Firebase uses email verification links, not 6-digit codes
     } catch (err) {
       if (err.code === 'auth/email-already-in-use' || err.message.includes('email-already-in-use')) {
         // If user exists, try to log them in instead
