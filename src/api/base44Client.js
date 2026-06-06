@@ -413,18 +413,23 @@ const authAPI = {
    * In base44 this triggers an OTP flow; here we just create the account.
    */
   async register({ email, password }) {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    // Send email verification
     try {
-      const { sendEmailVerification } = await import('firebase/auth');
-      await sendEmailVerification(cred.user);
-    } catch (e) {
-      // Non-fatal
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      // Send email verification
+      try {
+        const { sendEmailVerification } = await import('firebase/auth');
+        await sendEmailVerification(cred.user);
+      } catch (e) {
+        // Non-fatal
+      }
+      return {
+        id: cred.user.uid,
+        email: cred.user.email,
+      };
+    } catch (error) {
+      // Re-throw with the Firebase error code so the UI can handle it
+      throw error;
     }
-    return {
-      id: cred.user.uid,
-      email: cred.user.email,
-    };
   },
 
   /**

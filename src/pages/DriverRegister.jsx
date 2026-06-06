@@ -58,7 +58,18 @@ export default function DriverRegister() {
       await base44.auth.register({ email, password });
       setStep(2);
     } catch (err) {
-      setError(err.message || "Registration failed");
+      if (err.code === 'auth/email-already-in-use' || err.message.includes('email-already-in-use')) {
+        // If user exists, try to log them in instead
+        try {
+          await base44.auth.loginViaEmailPassword(email, password);
+          setStep(3); // Skip OTP and go straight to profile
+          return;
+        } catch (loginErr) {
+          setError("Email already registered. Please use the correct password to continue, or go to Login.");
+        }
+      } else {
+        setError(err.message || "Registration failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -119,19 +130,35 @@ export default function DriverRegister() {
       ]);
 
       const user = await base44.auth.me();
-      await base44.entities.DriverProfile.create({
+      
+      // Check if profile already exists to avoid duplicates
+      const existingProfiles = await base44.entities.DriverProfile.filter({ user_id: user.id });
+      
+      const profileData = {
+        user_id: user.id,
         full_name: fullName,
         phone,
         email: email || user?.email,
-        vehicle_model: `${vehicleMake} ${vehicleModel}`.trim(),
-        vehicle_plate: vehiclePlate,
-        license_number: licenseNumber || null,
-        status: "Pending",
+        vehicle_make: vehicleMake,
+        vehicle_model: vehicleModel,
+        license_plate: vehiclePlate,
+        ghana_card_url: ghanaCardUrl,
+        drivers_license_url: licensePhotoUrl,
+        vehicle_registration_url: vehiclePhotoUrl,
+        insurance_url: insurancePhotoUrl,
+        roadworthy_url: roadworthyPhotoUrl,
+        approval_status: "pending",
         is_online: false,
         total_earnings: 0,
         total_rides: 0,
         rating: 5,
-      });
+      };
+
+      if (existingProfiles.length > 0) {
+        await base44.entities.DriverProfile.update(existingProfiles[0].id, profileData);
+      } else {
+        await base44.entities.DriverProfile.create(profileData);
+      }
 
       setStep(5);
     } catch (err) {
