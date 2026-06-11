@@ -644,6 +644,7 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
     lastPosRef.current = null;
     tripStartTimeRef.current = Date.now();
     let lastWriteTime = 0;
+    let lastPosWriteTime = 0;
     gpsWatchRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         const cur = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -653,6 +654,18 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
         }
         lastPosRef.current = cur;
         const now = Date.now();
+        // Write current GPS position to DriverProfile every 4 seconds so the
+        // rider can see the driver's car moving on their map in real-time.
+        if (now - lastPosWriteTime > 4000) {
+          lastPosWriteTime = now;
+          if (driver?.id) {
+            firebaseClient.entities.DriverProfile.update(driver.id, {
+              current_lat: cur.lat,
+              current_lng: cur.lng,
+            }).catch(() => {});
+          }
+        }
+        // Write actual distance to Ride every 30 seconds
         if (now - lastWriteTime > 30000) {
           lastWriteTime = now;
           firebaseClient.entities.Ride.update(tripId, {
