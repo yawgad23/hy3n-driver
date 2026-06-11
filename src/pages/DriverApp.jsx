@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { firebaseClient } from "@/api/firebaseClient";
+import { useFCMNotifications } from "@/hooks/useFCMNotifications";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +56,9 @@ export default function DriverApp() {
       return profile;
     },
   });
+
+  // Initialise FCM push notifications for this driver
+  useFCMNotifications(driver?.user_id || driver?.id);
 
   const today = format(new Date(), "yyyy-MM-dd");
 
