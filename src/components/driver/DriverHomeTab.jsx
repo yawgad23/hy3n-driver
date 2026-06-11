@@ -6,8 +6,9 @@ import IncomingCallModal from "@/components/driver/IncomingCallModal";
 import {
   MapPin, Phone, MessageSquare, CheckCircle, XCircle, User, Star,
   Navigation, Clock, DollarSign, ChevronUp, ChevronDown, AlertTriangle,
-  Check, X, Shield, Zap, Wifi, WifiOff, Car, Target, TrendingUp
+  Check, X, Shield, Zap, Wifi, WifiOff, Car, Target, TrendingUp, Bell
 } from "lucide-react";
+import DriverNotificationCenter from "@/components/driver/NotificationCenter";
 import { cn } from "@/lib/utils";
 import { firebaseClient, db } from "@/api/firebaseClient";
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -616,6 +617,7 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
   const [pendingTrips, setPendingTrips] = useState([]);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [showNotifCenter, setShowNotifCenter] = useState(false);
 
   // ── GPS distance tracking during trip ──────────────────────────────────────
   const gpsWatchRef = useRef(null);
@@ -688,7 +690,7 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
   // ── Recover active trip on mount (checks both driver.id and driver.user_id) ──
   useEffect(() => {
     if (!driver) return;
-    const ACTIVE_STATUSES = ["driver_arriving", "driver_arrived", "in_progress"];
+    const ACTIVE_STATUSES = ["driver_completing_nearby", "driver_arriving", "driver_arrived", "in_progress"];
     const recoverActiveTrip = async () => {
       try {
         const ridesRef = collection(db, "rides");
@@ -736,7 +738,14 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
           const ts = r.pending_driver_at || r.matched_at || r.created_date;
           return !ts || ts >= tenMinutesAgo;
         });
+        
+        // Also check for accepted back-to-back rides that are waiting
+        const queued = rides.filter(r => r.status === 'driver_completing_nearby');
+        
         setPendingTrips(fresh);
+        if (queued.length > 0 && !nextTripRequest) {
+          setNextTripRequest(queued[0]);
+        }
       }
     );
     return () => unsub?.();
@@ -942,6 +951,23 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
       });
       // Store computed values so FareScreen can display them
       setCompletedFare({ finalFare, actualKm, durationMin });
+      
+      // If there's a queued trip, promote it to current trip
+      if (nextTripRequest) {
+        setTimeout(async () => {
+          try {
+            await firebaseClient.entities.Ride.update(nextTripRequest.id, {
+              status: "driver_arriving",
+            });
+            setCurrentTrip({...nextTripRequest, status: "driver_arriving"});
+            setTripPhase("to_pickup");
+            setNextTripRequest(null);
+            toast.success("Navigating to next pickup!");
+          } catch (err) {
+            console.error("Failed to promote queued trip:", err);
+          }
+        }, 3000); // Wait 3 seconds for the fare screen to show before transitioning
+      }
     } catch (err) {
       console.error('[DriverHomeTab] Complete trip error:', err);
       // Even on error, show fare screen with best estimate
@@ -1035,6 +1061,15 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
             : <><span className="w-2 h-2 bg-muted-foreground rounded-full" /><span className="text-xs font-semibold text-muted-foreground">Offline</span></>
           }
         </div>
+
+        {/* Bell notification button */}
+        <button
+          onClick={() => setShowNotifCenter(true)}
+          className="w-9 h-9 rounded-full bg-card/90 backdrop-blur-sm border border-border flex items-center justify-center relative shadow-lg"
+        >
+          <Bell className="w-4 h-4 text-foreground" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+        </button>
 
         {/* Destination filter pill — only when online and no active trip */}
         {isOnline && !currentTrip && (
@@ -1164,7 +1199,17 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <button
-                      onClick={() => { handleAcceptTrip(nextTripRequest); setNextTripRequest(null); }}
+                      onClick={async () => { 
+                        try {
+                          await firebaseClient.entities.Ride.update(nextTripRequest.id, {
+                            status: "driver_completing_nearby",
+                            driver_accepted_at: new Date().toISOString(),
+                          });
+                          toast.success("Ride queued! Finish current trip first.");
+                        } catch (err) {
+                          toast.error("Failed to accept ride.");
+                        }
+                      }}
                       className="bg-white text-green-700 text-xs font-bold px-3 py-1.5 rounded-xl"
                     >
                       Accept
@@ -1480,6 +1525,13 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
         call={voiceCall}
         otherName={currentTrip?.rider_name || currentTrip?.passenger_name || "Rider"}
         otherRole="rider"
+      />
+
+      {/* Notification Center */}
+      <DriverNotificationCenter
+        isOpen={showNotifCenter}
+        onClose={() => setShowNotifCenter(false)}
+        driverId={driver?.user_id || driver?.id}
       />
     </div>
   );
