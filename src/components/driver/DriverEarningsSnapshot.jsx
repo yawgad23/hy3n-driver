@@ -6,16 +6,21 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
-const COMMISSION_RATE = 0.15;
-
-export default function DriverEarningsSnapshot({ driver, todayTrips = [] }) {
+// Flat daily commission: GH₵50 for car, GH₵30 for okada/delivery
+// Driver keeps 100% of fares — commission is paid separately as a daily flat fee
+export default function DriverEarningsSnapshot({ driver, todayTrips = [], onNavigate }) {
   const todayEarnings = todayTrips
     .filter(t => t.status === "completed")
-    .reduce((sum, t) => sum + (t.fare || 0) * (1 - COMMISSION_RATE), 0);
+    .reduce((sum, t) => sum + (t.fare || t.fare_estimate || 0), 0);
 
   const todayCompleted = todayTrips.filter(t => t.status === "completed").length;
-  const dailyGoal = 150;
+  const dailyGoal = 200;
   const goalProgress = Math.min((todayEarnings / dailyGoal) * 100, 100);
+
+  // Determine daily commission based on service type
+  const serviceType = driver?.service_type || "car";
+  const dailyCommission = (serviceType === "okada" || serviceType === "delivery") ? 30 : 50;
+  const netAfterCommission = Math.max(0, todayEarnings - dailyCommission);
 
   const onlineHours = driver?.total_trips ? Math.round(driver.total_trips * 0.4) : 0;
 
@@ -23,24 +28,46 @@ export default function DriverEarningsSnapshot({ driver, todayTrips = [] }) {
     <div className="space-y-3">
       {/* Today summary */}
       <div className="grid grid-cols-2 gap-3">
-        <Card className="border-accent/30 bg-accent/5">
+        <Card
+          className="border-accent/30 bg-accent/5 cursor-pointer active:scale-95 transition-transform"
+          onClick={() => onNavigate && onNavigate('earnings')}
+        >
           <CardContent className="p-4 text-center">
             <DollarSign className="w-6 h-6 text-accent mx-auto mb-1" />
             <p className="text-2xl font-heading font-bold text-accent">
-              ₵{todayEarnings.toFixed(2)}
+              GH₵{todayEarnings.toFixed(0)}
             </p>
             <p className="text-xs text-muted-foreground">Today's Earnings</p>
-            <p className="text-[10px] text-yellow-500/70 mt-0.5">After 15% commission</p>
+            <p className="text-[10px] text-green-500/80 mt-0.5">Tap to view details →</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className="cursor-pointer active:scale-95 transition-transform"
+          onClick={() => onNavigate && onNavigate('history')}
+        >
           <CardContent className="p-4 text-center">
             <Car className="w-6 h-6 text-primary mx-auto mb-1" />
             <p className="text-2xl font-heading font-bold">{todayCompleted}</p>
             <p className="text-xs text-muted-foreground">Trips Today</p>
+            <p className="text-[10px] text-primary/60 mt-0.5">Tap to view →</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Daily commission reminder */}
+      <Card className="border-yellow-500/30 bg-yellow-500/5">
+        <CardContent className="p-3 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-yellow-400">Daily HY3N Fee</p>
+            <p className="text-[10px] text-muted-foreground">
+              {serviceType === "okada" || serviceType === "delivery"
+                ? "Okada / Delivery — flat daily fee"
+                : "Car — flat daily fee"}
+            </p>
+          </div>
+          <p className="text-xl font-heading font-bold text-yellow-400">₵{dailyCommission}</p>
+        </CardContent>
+      </Card>
 
       {/* Daily goal */}
       <Card>
@@ -58,7 +85,7 @@ export default function DriverEarningsSnapshot({ driver, todayTrips = [] }) {
           <p className="text-xs text-muted-foreground mt-2">
             {goalProgress >= 100
               ? "🎉 Goal reached! Keep going!"
-              : `₵${(dailyGoal - todayEarnings).toFixed(2)} more to hit today's goal`}
+              : `₵${(dailyGoal - todayEarnings).toFixed(0)} more to hit today's goal`}
           </p>
         </CardContent>
       </Card>

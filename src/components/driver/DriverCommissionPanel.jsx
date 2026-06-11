@@ -8,6 +8,10 @@ import { toast } from "sonner";
 
 const MOMO_NUMBER = "0546728330";
 
+// Flat daily commission rates
+const DAILY_FEE_CAR = 50;
+const DAILY_FEE_OKADA_DELIVERY = 30;
+
 const STATUS_CONFIG = {
   pending: { label: "Pending", color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20", icon: Clock },
   paid: { label: "Paid ✓", color: "bg-green-500/10 text-green-400 border-green-500/20", icon: CheckCircle },
@@ -15,7 +19,21 @@ const STATUS_CONFIG = {
   disputed: { label: "Disputed", color: "bg-purple-500/10 text-purple-400 border-purple-500/20", icon: AlertTriangle },
 };
 
+function getServiceType(driver) {
+  if (driver?.service_type) return driver.service_type.toLowerCase();
+  const model = (driver?.vehicle_model || "").toLowerCase();
+  const categories = (driver?.ride_categories || []);
+  if (model.includes("bike") || model.includes("motor") || categories.includes("okada")) return "okada";
+  if (model.includes("delivery") || categories.includes("express_delivery")) return "delivery";
+  return "car";
+}
+
 export default function DriverCommissionPanel({ driver }) {
+  const serviceType = getServiceType(driver);
+  const dailyFee = (serviceType === "okada" || serviceType === "delivery")
+    ? DAILY_FEE_OKADA_DELIVERY
+    : DAILY_FEE_CAR;
+
   const { data: records = [] } = useQuery({
     queryKey: ["driver-commission", driver?.full_name],
     queryFn: () => firebaseClient.entities.CommissionRecord.filter({ driver_name: driver?.full_name }, "-created_date", 10),
@@ -34,22 +52,37 @@ export default function DriverCommissionPanel({ driver }) {
     window.location.href = `tel:${MOMO_NUMBER}`;
   };
 
-  if (records.length === 0) return null;
-
   return (
-    <Card className={totalOwed > 0 ? "border-yellow-500/30 bg-yellow-500/5" : "border-green-500/20 bg-green-500/5"}>
+    <Card className={totalOwed > 0 ? "border-yellow-500/30 bg-yellow-500/5" : "border-primary/20 bg-primary/5"}>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <DollarSign className="w-4 h-4 text-primary" />
-          Commission Due
+          Daily HY3N Fee
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Daily fee info */}
+        <div className="rounded-xl bg-card border border-primary/20 p-4 flex items-center justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground">Your Daily Fee</p>
+            <p className="text-3xl font-heading font-bold text-primary">₵{dailyFee}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {serviceType === "okada" || serviceType === "delivery"
+                ? "Okada / Delivery rate"
+                : "Car rate"}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground">Pay once daily</p>
+            <p className="text-xs text-muted-foreground mt-1">via MTN MoMo</p>
+          </div>
+        </div>
+
         {totalOwed > 0 && (
           <div className="rounded-xl bg-card border border-yellow-500/20 p-4">
-            <p className="text-xs text-muted-foreground mb-1">Amount Owed to HY3N</p>
-            <p className="text-3xl font-heading font-bold text-yellow-400">₵{totalOwed.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{pending.length} week(s) outstanding</p>
+            <p className="text-xs text-muted-foreground mb-1">Outstanding Balance</p>
+            <p className="text-3xl font-heading font-bold text-yellow-400">₵{totalOwed.toFixed(0)}</p>
+            <p className="text-xs text-muted-foreground mt-1">{pending.length} day(s) unpaid</p>
           </div>
         )}
 
@@ -74,27 +107,30 @@ export default function DriverCommissionPanel({ driver }) {
           <p className="text-xs text-muted-foreground">After sending, your admin will confirm receipt and update your status.</p>
         </div>
 
-        {/* Weekly breakdown */}
-        <div className="space-y-2">
-          {records.slice(0, 4).map(r => {
-            const cfg = STATUS_CONFIG[r.status] || STATUS_CONFIG.pending;
-            const Icon = cfg.icon;
-            return (
-              <div key={r.id} className="flex items-center justify-between p-2 rounded-lg bg-card border border-border">
-                <div>
-                  <p className="text-xs font-medium">{r.week_label}</p>
-                  <p className="text-xs text-muted-foreground">{r.trip_count} trips · ₵{(r.total_fare || 0).toFixed(2)} total fare</p>
+        {/* Daily breakdown */}
+        {records.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Recent Records</p>
+            {records.slice(0, 4).map(r => {
+              const cfg = STATUS_CONFIG[r.status] || STATUS_CONFIG.pending;
+              const Icon = cfg.icon;
+              return (
+                <div key={r.id} className="flex items-center justify-between p-2 rounded-lg bg-card border border-border">
+                  <div>
+                    <p className="text-xs font-medium">{r.week_label || r.day_label}</p>
+                    <p className="text-xs text-muted-foreground">{r.trip_count} trips</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-primary">₵{(r.commission_amount || 0).toFixed(0)}</p>
+                    <Badge className={`${cfg.color} text-[10px] gap-1`}>
+                      <Icon className="w-3 h-3" /> {cfg.label}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-bold text-primary">₵{(r.commission_amount || 0).toFixed(2)}</p>
-                  <Badge className={`${cfg.color} text-[10px] gap-1`}>
-                    <Icon className="w-3 h-3" /> {cfg.label}
-                  </Badge>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

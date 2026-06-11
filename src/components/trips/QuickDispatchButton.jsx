@@ -41,7 +41,13 @@ export default function QuickDispatchButton({ trip, onDispatchSuccess }) {
     try {
       await firebaseClient.entities.Ride.update(trip.id, {
         driver_id: driver.id,
-        status: "in_progress",
+        driver_name: driver.full_name || "",
+        driver_rating: driver.rating || null,
+        vehicle_make: driver.vehicle_make || "",
+        vehicle_model: driver.vehicle_model || "",
+        vehicle_color: driver.vehicle_color || "",
+        license_plate: driver.license_plate || "",
+        status: "matched",
       });
 
       toast.success(`Dispatched to ${driver.full_name} (${driver.distance_km} km away)`);

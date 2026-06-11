@@ -98,7 +98,7 @@ export default function Login() {
   return (
     <AuthLayout
       icon={LogIn}
-      title="Welcome back"
+      title="Akwaaba"
       subtitle="Log in to your account"
       footer={
         <>

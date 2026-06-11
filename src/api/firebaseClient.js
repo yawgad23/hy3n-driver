@@ -43,6 +43,8 @@ import {
   getRedirectResult,
   onAuthStateChanged,
   confirmPasswordReset,
+  setPersistence,
+  browserLocalPersistence,
 } from 'firebase/auth';
 import {
   getFirestore,
@@ -85,6 +87,11 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+
+// Keep drivers logged in permanently — no need to re-login after closing the app
+setPersistence(auth, browserLocalPersistence).catch((err) => {
+  console.warn('[Firebase] Failed to set auth persistence:', err);
+});
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -130,12 +137,14 @@ function buildQuery(collectionName, filters = {}, orderByStr, limitNum) {
     }
   }
 
-  // OrderBy
+  // OrderBy — only add if explicitly requested OR if there are no filters.
+  // Adding orderBy together with a where() filter requires a Firestore composite index.
+  // To avoid index errors when filtering, skip the default orderBy when filters are present.
   const order = parseOrderBy(orderByStr);
   if (order) {
     constraints.push(orderBy(order.field, order.direction));
-  } else {
-    // Default: order by created_date descending so newest first
+  } else if (Object.keys(filters).length === 0) {
+    // Default order only when listing without filters
     constraints.push(orderBy('created_date', 'desc'));
   }
 
@@ -299,6 +308,63 @@ function createEntityAPI(collectionName) {
       });
       return unsubscribe;
     },
+
+    /**
+     * Subscribe to real-time changes on a FILTERED query.
+     * Firebase API: subscribeToQuery(filters, callback) → returns unsubscribe function
+     *
+     * The callback receives the full current list of matching documents.
+     * This is the preferred way to get real-time ride request updates.
+     */
+    subscribeToQuery(filters = {}, callback) {
+      const colRef = collection(db, collectionName);
+      const constraints = [];
+      for (const [field, value] of Object.entries(filters)) {
+        if (value !== undefined && value !== null) {
+          constraints.push(where(field, '==', value));
+        }
+      }
+      const q = constraints.length > 0 ? query(colRef, ...constraints) : colRef;
+      const unsubscribe = onSnapshot(q, (snap) => {
+        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        callback(docs);
+      }, (err) => {
+        console.error(`[Firebase] subscribeToQuery(${collectionName}) error:`, err);
+        // Fallback: try without filters
+        const fallbackUnsub = onSnapshot(colRef, (snap) => {
+          let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          for (const [field, value] of Object.entries(filters)) {
+            if (value !== undefined && value !== null) {
+              docs = docs.filter(doc => doc[field] === value);
+            }
+          }
+          callback(docs);
+        });
+        return fallbackUnsub;
+      });
+      return unsubscribe;
+    },
+
+    /**
+     * Subscribe to real-time changes on a SINGLE document by ID.
+     * Firebase API: subscribeToDoc(docId, callback) → returns unsubscribe function
+     *
+     * The callback receives the full document data (with id) on every change,
+     * or null if the document is deleted.
+     */
+    subscribeToDoc(docId, callback) {
+      const docRef = doc(db, collectionName, docId);
+      const unsubscribe = onSnapshot(docRef, (snap) => {
+        if (snap.exists()) {
+          callback({ id: snap.id, ...snap.data() });
+        } else {
+          callback(null);
+        }
+      }, (err) => {
+        console.error(`[Firebase] subscribeToDoc(${collectionName}/${docId}) error:`, err);
+      });
+      return unsubscribe;
+    },
   };
 }
 
@@ -310,6 +376,7 @@ const ENTITY_COLLECTIONS = {
   BiometricKey: 'biometric_keys',
   Commission: 'commissions',
   CommissionRecord: 'commission_records',
+  DailyCommission: 'daily_commissions',
   DriverProfile: 'driver_profiles',
   Earning: 'earnings',
   FareConfig: 'fare_configs',

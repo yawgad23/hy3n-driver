@@ -103,11 +103,13 @@ export default function DriverTripMap({ trip, phase }) {
 
   // Geocode addresses when coordinates aren't stored
   useEffect(() => {
-    if (trip?.pickup_location && !trip?.pickup_lat) {
-      geocode(trip.pickup_location).then(pos => pos && setResolvedPickup(pos));
+    const pickupAddr = trip?.pickup_address || trip?.pickup_location;
+    const dropoffAddr = trip?.destination_address || trip?.dropoff_location;
+    if (pickupAddr && !trip?.pickup_lat) {
+      geocode(pickupAddr).then(pos => pos && setResolvedPickup(pos));
     }
-    if (trip?.dropoff_location && !trip?.dropoff_lat) {
-      geocode(trip.dropoff_location).then(pos => pos && setResolvedDropoff(pos));
+    if (dropoffAddr && !trip?.dropoff_lat) {
+      geocode(dropoffAddr).then(pos => pos && setResolvedDropoff(pos));
     }
   }, [trip?.id]);
 
@@ -168,35 +170,39 @@ export default function DriverTripMap({ trip, phase }) {
   };
 
   return (
-    <div className="relative rounded-xl overflow-hidden border border-border" style={{ height: 320 }}>
-      {/* Phase Banner */}
-      <div className="absolute top-3 left-3 z-[1000] flex gap-2">
-        <Badge className={phase === "to_pickup" ? "bg-green-600 text-white" : "bg-red-600 text-white"}>
-          <MapPin className="w-3 h-3 mr-1" />
-          {phase === "to_pickup" ? "Heading to Pickup" : "Heading to Dropoff"}
-        </Badge>
-        {riderPos && phase === "to_pickup" && (
-          <Badge className="bg-blue-600 text-white">
-            <User className="w-3 h-3 mr-1" />
-            Rider Live
+    <div className="relative overflow-hidden" style={{ height: "100%", minHeight: "100vh" }}>
+      {/* Phase Banner — only shown during an active trip */}
+      {trip && (
+        <div className="absolute top-3 left-3 z-[1000] flex gap-2">
+          <Badge className={phase === "to_pickup" ? "bg-green-600 text-white" : "bg-red-600 text-white"}>
+            <MapPin className="w-3 h-3 mr-1" />
+            {phase === "to_pickup" ? "Heading to Pickup" : "Heading to Dropoff"}
           </Badge>
-        )}
-      </div>
+          {riderPos && phase === "to_pickup" && (
+            <Badge className="bg-blue-600 text-white">
+              <User className="w-3 h-3 mr-1" />
+              Rider Live
+            </Badge>
+          )}
+        </div>
+      )}
 
-      {/* Navigate Button */}
-      <button
-        onClick={openGoogleMapsNavigation}
-        style={{
-          position: "absolute", bottom: 12, left: "50%", transform: "translateX(-50%)", zIndex: 1000,
-          background: "#3b82f6", color: "white", border: "none", borderRadius: "24px",
-          padding: "10px 20px", fontWeight: 600, fontSize: 13, cursor: "pointer",
-          boxShadow: "0 4px 12px rgba(59,130,246,0.5)",
-          display: "flex", alignItems: "center", gap: 6,
-        }}
-      >
-        <Navigation style={{ width: 16, height: 16 }} />
-        Open Navigation
-      </button>
+      {/* Navigate Button — only shown during an active trip, positioned above bottom sheet */}
+      {trip && (
+        <button
+          onClick={openGoogleMapsNavigation}
+          style={{
+            position: "absolute", bottom: 200, left: "50%", transform: "translateX(-50%)", zIndex: 1000,
+            background: "#3b82f6", color: "white", border: "none", borderRadius: "24px",
+            padding: "10px 20px", fontWeight: 600, fontSize: 13, cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(59,130,246,0.5)",
+            display: "flex", alignItems: "center", gap: 6,
+          }}
+        >
+          <Navigation style={{ width: 16, height: 16 }} />
+          Open Navigation
+        </button>
+      )}
 
       <MapContainer
         center={defaultCenter}
@@ -229,14 +235,14 @@ export default function DriverTripMap({ trip, phase }) {
         {/* Pickup marker */}
         {pickupPos && (
           <Marker position={pickupPos} icon={pickupIcon}>
-            <Popup>📍 Pickup: {trip?.pickup_location}</Popup>
+            <Popup>📍 Pickup: {trip?.pickup_address || trip?.pickup_location}</Popup>
           </Marker>
         )}
 
         {/* Dropoff marker */}
         {dropoffPos && (
           <Marker position={dropoffPos} icon={dropoffIcon}>
-            <Popup>🔴 Dropoff: {trip?.dropoff_location}</Popup>
+            <Popup>🔴 Dropoff: {trip?.destination_address || trip?.dropoff_location}</Popup>
           </Marker>
         )}
 

@@ -1,21 +1,33 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function SplashScreen() {
   const navigate = useNavigate();
   const [showTagline, setShowTagline] = useState(false);
+  const { isAuthenticated, isLoadingAuth } = useAuth();
 
   useEffect(() => {
     // Show tagline after HY3N has appeared
     const taglineTimer = setTimeout(() => setShowTagline(true), 900);
-    // Navigate to login after full animation
-    const navTimer = setTimeout(() => navigate("/login"), 3500);
+
+    // After animation completes, check auth state and redirect accordingly
+    const navTimer = setTimeout(() => {
+      // If auth is still loading, wait a bit more before deciding
+      if (isLoadingAuth) return;
+      if (isAuthenticated) {
+        navigate("/driver-app", { replace: true });
+      } else {
+        navigate("/login", { replace: true });
+      }
+    }, 3500);
+
     return () => {
       clearTimeout(taglineTimer);
       clearTimeout(navTimer);
     };
-  }, [navigate]);
+  }, [navigate, isAuthenticated, isLoadingAuth]);
 
   return (
     <div className="fixed inset-0 bg-background flex flex-col items-center justify-center overflow-hidden">
@@ -40,7 +52,7 @@ export default function SplashScreen() {
           />
         </motion.div>
 
-        {/* "Ride With Pride" tagline — fades in after HY3N */}
+        {/* "Driver Portal" tagline — fades in after HY3N */}
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={showTagline ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}

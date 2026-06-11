@@ -49,7 +49,7 @@ export default function PerformanceMetrics() {
     },
     {
       title: "Avg. Fare",
-      value: `$${avgFare.toFixed(2)}`,
+      value: `GH₵${Math.round(avgFare)}`,
       icon: DollarSign,
       color: "text-accent",
       bg: "bg-accent/10",
@@ -146,7 +146,7 @@ export default function PerformanceMetrics() {
                     </span>
                     <span className="flex items-center gap-1">
                       <DollarSign className="w-3 h-3" />
-                      ${driver.total_earnings?.toLocaleString() || 0}
+                      GH₵{Math.round(driver.total_earnings || 0).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -177,7 +177,7 @@ export default function PerformanceMetrics() {
           <p className="text-xs text-muted-foreground mt-1">Completed</p>
         </div>
         <div className="bg-card rounded-xl border border-border p-4 text-center">
-          <p className="text-2xl font-bold text-chart-2">${(totalRevenue / (completedTrips.length || 1)).toFixed(0)}/hr</p>
+          <p className="text-2xl font-bold text-chart-2">GH₵{Math.round(totalRevenue / (completedTrips.length || 1))}/trip</p>
           <p className="text-xs text-muted-foreground mt-1">Est. Revenue/Hr</p>
         </div>
       </motion.div>

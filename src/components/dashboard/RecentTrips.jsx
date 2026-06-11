@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, DollarSign } from "lucide-react";
+import { MapPin, Clock } from "lucide-react";
 import { format } from "date-fns";
 
 const statusStyles = {
@@ -46,16 +46,16 @@ export default function RecentTrips({ trips, isLoading }) {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{trip.passenger_name || "Passenger"}</p>
             <p className="text-xs text-muted-foreground truncate mt-0.5">
-              {trip.pickup_location} → {trip.dropoff_location}
+              {trip.pickup_address || trip.pickup_location || 'Pickup'} → {trip.destination_address || trip.dropoff_location || 'Destination'}
             </p>
           </div>
           <div className="text-right shrink-0 space-y-1">
             <Badge variant="outline" className={statusStyles[trip.status] || ""}>
               {trip.status?.replace("_", " ")}
             </Badge>
-            {trip.fare && (
-              <p className="text-xs text-muted-foreground flex items-center justify-end gap-1">
-                <DollarSign className="w-3 h-3" />{trip.fare.toFixed(2)}
+            {(trip.fare || trip.fare_estimate) && (
+              <p className="text-xs font-semibold text-accent">
+                GH₵{Math.round(trip.fare || trip.fare_estimate)}
               </p>
             )}
           </div>

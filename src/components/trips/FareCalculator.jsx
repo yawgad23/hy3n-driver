@@ -22,19 +22,19 @@ import { cn } from "@/lib/utils";
 
 // ── HY3N Fare Config — Bolt/Uber Ghana style (GH₵) ───────────────────────────
 const FARE_CONFIG = {
-  BASE_FARE: 3.00,            // GH₵ flag-fall
-  COST_PER_KM: 1.70,         // GH₵/km (moving)
-  COST_PER_MIN_MOVING: 0.17, // GH₵/min while moving
-  BOOKING_FEE: 0.80,         // GH₵ fixed
-  MIN_FARE: 6.00,            // GH₵ minimum ride
+  BASE_FARE: 5.00,            // GH₵ flag-fall (Standard)
+  COST_PER_KM: 3.70,         // GH₵/km (Standard — GH₵47 vs Uber GH₵50 for 9.66km/9min)
+  COST_PER_MIN_MOVING: 0.70, // GH₵/min while moving (Standard)
+  BOOKING_FEE: 0.00,         // GH₵ fixed (no booking fee)
+  MIN_FARE: 10.00,           // GH₵ minimum ride
 
-  // Waiting fee (like Bolt Ghana)
+  // Waiting fee
   WAITING_FREE_MINS: 3,      // first 3 min free (grace period)
-  WAITING_FEE_PER_MIN: 0.20, // GH₵/min after grace period
+  WAITING_FEE_PER_MIN: 0.80, // GH₵/min after grace period
 
-  // Traffic congestion fee (like Bolt Ghana — charged when nearly stationary)
+  // Traffic congestion fee
   // Applied per minute when avg speed < 8 km/h (near-standstill in traffic)
-  TRAFFIC_JAM_FEE_PER_MIN: 0.15, // GH₵/min stuck in traffic
+  TRAFFIC_JAM_FEE_PER_MIN: 0.25, // GH₵/min stuck in traffic
   TRAFFIC_JAM_SPEED_KPH: 8,      // speed threshold for congestion charge
 
   TRAFFIC_MULTIPLIERS: {
@@ -313,7 +313,7 @@ export default function FareCalculator({ distanceKm, durationMin, onFareCalculat
                     <div className="flex items-start gap-2 p-2.5 rounded-lg bg-muted/60 text-xs text-muted-foreground">
                       <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
                       <span>
-                        Final fare may vary ₵{fare.minFare.toFixed(2)} – ₵{fare.maxFare.toFixed(2)}. 15% HY3N commission deducted from driver payout.
+                        Final fare may vary ₵{fare.minFare.toFixed(2)} – ₵{fare.maxFare.toFixed(2)}. Flat daily HY3N fee applies (₵50 car, ₵30 okada/delivery).
                       </span>
                     </div>
                   </div>

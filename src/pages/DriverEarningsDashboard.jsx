@@ -33,14 +33,14 @@ export default function DriverEarningsDashboard() {
     queryFn: () => firebaseClient.entities.Ride.list("-created_date"),
   });
 
-  const COMMISSION_RATE = 0.15;
-  const driverShare = (fare) => (fare || 0) * (1 - COMMISSION_RATE);
+  
+  
 
   const now = new Date();
   const completedTrips = trips.filter((t) => t.status === "completed");
 
   // ── KPIs ──────────────────────────────────────────────────
-  const totalEarnings = completedTrips.reduce((s, t) => s + driverShare(t.fare), 0);
+  const totalEarnings = completedTrips.reduce((s, t) => s + ((t.fare || 0)), 0);
   const totalDurationHrs = completedTrips.reduce((s, t) => s + (t.duration_min || 0), 0) / 60;
   const overallHourlyRate = totalDurationHrs > 0 ? totalEarnings / totalDurationHrs : 0;
 
@@ -51,11 +51,11 @@ export default function DriverEarningsDashboard() {
     const d = new Date(t.trip_date || t.created_date);
     return d >= weekStart && d <= weekEnd;
   });
-  const weeklyEarnings = weeklyTrips.reduce((s, t) => s + driverShare(t.fare), 0);
+  const weeklyEarnings = weeklyTrips.reduce((s, t) => s + ((t.fare || 0)), 0);
 
   const todayStart = startOfDay(now);
   const todayTrips = completedTrips.filter((t) => new Date(t.trip_date || t.created_date) >= todayStart);
-  const todayEarnings = todayTrips.reduce((s, t) => s + driverShare(t.fare), 0);
+  const todayEarnings = todayTrips.reduce((s, t) => s + ((t.fare || 0)), 0);
 
   const inProgressTrips = trips.filter((t) => t.status === "in_progress");
   const avgPerTrip = completedTrips.length > 0 ? totalEarnings / completedTrips.length : 0;
@@ -67,7 +67,7 @@ export default function DriverEarningsDashboard() {
     );
     return {
       day: format(day, "EEE"),
-      earnings: dayTrips.reduce((s, t) => s + driverShare(t.fare), 0),
+      earnings: dayTrips.reduce((s, t) => s + ((t.fare || 0)), 0),
       trips: dayTrips.length,
     };
   });
@@ -82,7 +82,7 @@ export default function DriverEarningsDashboard() {
     });
     return {
       week: i === 3 ? "This week" : `${3 - i}w ago`,
-      earnings: wTrips.reduce((s, t) => s + driverShare(t.fare), 0),
+      earnings: wTrips.reduce((s, t) => s + ((t.fare || 0)), 0),
       trips: wTrips.length,
     };
   });
@@ -110,7 +110,7 @@ export default function DriverEarningsDashboard() {
         <div>
           <h1 className="font-heading text-2xl lg:text-3xl font-bold tracking-tight">Earnings Dashboard</h1>
           <p className="text-muted-foreground text-sm mt-1">Track performance · predict revenue · optimize routes</p>
-          <p className="text-xs text-yellow-500/80 mt-0.5">After 15% HY3N commission deducted</p>
+          <p className="text-xs text-yellow-500/80 mt-0.5">You keep 100% of fares — flat daily fee applies</p>
         </div>
         <Tabs value={timeRange} onValueChange={setTimeRange}>
           <TabsList>
@@ -154,7 +154,7 @@ export default function DriverEarningsDashboard() {
           },
           {
             label: "In Progress",
-            value: `₵${inProgressTrips.reduce((s, t) => s + driverShare(t.fare), 0).toFixed(2)}`,
+            value: `₵${inProgressTrips.reduce((s, t) => s + ((t.fare || 0)), 0).toFixed(2)}`,
             sub: `${inProgressTrips.length} active trips`,
             icon: Clock,
             color: "text-chart-4",

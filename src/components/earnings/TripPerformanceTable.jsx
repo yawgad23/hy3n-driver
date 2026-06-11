@@ -2,8 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUpRight } from "lucide-react";
 import { format } from "date-fns";
 
-const COMMISSION_RATE = 0.15;
-
+// No percentage commission — drivers keep 100% of fares
 function rateColor(rate) {
   if (rate >= 40) return "text-green-400";
   if (rate >= 20) return "text-yellow-400";
@@ -16,8 +15,8 @@ export default function TripPerformanceTable({ trips }) {
     .slice(0, 10)
     .map((t) => ({
       ...t,
-      netFare: t.fare * (1 - COMMISSION_RATE),
-      hourlyRate: t.duration_min > 0 ? (t.fare * (1 - COMMISSION_RATE) / (t.duration_min / 60)) : 0,
+      netFare: t.fare,
+      hourlyRate: t.duration_min > 0 ? (t.fare / (t.duration_min / 60)) : 0,
     }))
     .sort((a, b) => b.hourlyRate - a.hourlyRate);
 

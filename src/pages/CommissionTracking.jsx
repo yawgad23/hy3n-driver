@@ -76,7 +76,7 @@ export default function CommissionTracking() {
           </p>
         </div>
         <Button onClick={() => setShowGenerate(true)} className="gap-2">
-          <Plus className="w-4 h-4" /> Generate Weekly Records
+          <Plus className="w-4 h-4" /> Generate Daily Fee Records
         </Button>
       </div>
 
@@ -163,7 +163,7 @@ export default function CommissionTracking() {
         ) : filtered.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center text-muted-foreground">
-              No records found. Generate weekly commission records to get started.
+              No records found. Generate daily fee records to get started.
             </CardContent>
           </Card>
         ) : (
@@ -176,7 +176,7 @@ export default function CommissionTracking() {
                   <div className="flex items-center gap-4 flex-wrap">
                     <div className="flex-1 min-w-[160px]">
                       <p className="font-semibold text-sm">{record.driver_name}</p>
-                      <p className="text-xs text-muted-foreground">{record.week_label}</p>
+                      <p className="text-xs text-muted-foreground">{record.day_label || record.week_label}</p>
                       {record.driver_phone && (
                         <p className="text-xs text-muted-foreground">{record.driver_phone}</p>
                       )}
@@ -186,7 +186,7 @@ export default function CommissionTracking() {
                       <p className="font-bold text-sm">₵{(record.total_fare || 0).toFixed(2)}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-xs text-muted-foreground">Commission (20%)</p>
+                      <p className="text-xs text-muted-foreground">Daily Fee</p>
                       <p className="font-bold text-sm text-primary">₵{(record.commission_amount || 0).toFixed(2)}</p>
                     </div>
                     <div className="text-center">

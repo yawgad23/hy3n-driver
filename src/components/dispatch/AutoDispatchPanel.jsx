@@ -69,7 +69,13 @@ export default function AutoDispatchPanel({ trip, onDriverAssigned }) {
       // Update the trip with the selected driver
       await firebaseClient.entities.Ride.update(trip.id, {
         driver_id: topDriver.id,
-        status: "in_progress",
+        driver_name: topDriver.full_name || "",
+        driver_rating: topDriver.rating || null,
+        vehicle_make: topDriver.vehicle_make || "",
+        vehicle_model: topDriver.vehicle_model || "",
+        vehicle_color: topDriver.vehicle_color || "",
+        license_plate: topDriver.license_plate || "",
+        status: "matched",
       });
 
       toast.success(`Auto-dispatched to ${topDriver.full_name} (${topDriver.distance_km} km away)`);

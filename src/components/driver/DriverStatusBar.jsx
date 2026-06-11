@@ -4,11 +4,17 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { motion, AnimatePresence } from "framer-motion";
-import { Car, Wifi, WifiOff, Bell, ChevronRight, Zap } from "lucide-react";
+import { Car, Wifi, WifiOff, Bell, ChevronRight, Zap, Bike, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { firebaseClient } from "@/api/firebaseClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+const SERVICE_TYPE_CONFIG = {
+  car: { label: "Car", icon: Car, color: "bg-blue-500/10 text-blue-600 border-blue-500/30" },
+  okada: { label: "Okada", icon: Bike, color: "bg-orange-500/10 text-orange-600 border-orange-500/30" },
+  delivery: { label: "Delivery", icon: Package, color: "bg-purple-500/10 text-purple-600 border-purple-500/30" },
+};
 
 export default function DriverStatusBar({ driver, isOnline, onToggle, tripRequests = [] }) {
   const queryClient = useQueryClient();
@@ -57,9 +63,33 @@ export default function DriverStatusBar({ driver, isOnline, onToggle, tripReques
             }
           </div>
           <div>
-            <p className="font-heading font-bold text-base">
-              {isOnline ? "You're Online" : "You're Offline"}
-            </p>
+            <div className="flex items-center gap-2 mb-0.5">
+              <p className="font-heading font-bold text-base">
+                {isOnline ? "You're Online" : "You're Offline"}
+              </p>
+              {driver?.service_type && SERVICE_TYPE_CONFIG[driver.service_type] && (() => {
+                const cfg = SERVICE_TYPE_CONFIG[driver.service_type];
+                const Icon = cfg.icon;
+                let label = cfg.label;
+                
+                // For car drivers, show the specific tier if available
+                if (driver.service_type === 'car' && driver.ride_categories?.length > 0) {
+                  if (driver.ride_categories.includes("kantanka")) {
+                    label = "Kantanka + Comfort";
+                  } else {
+                    const tier = driver.ride_categories[0];
+                    label = tier.charAt(0).toUpperCase() + tier.slice(1);
+                  }
+                }
+                
+                return (
+                  <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${cfg.color}`}>
+                    <Icon className="w-3 h-3" />
+                    {label}
+                  </span>
+                );
+              })()}
+            </div>
             <p className="text-xs text-muted-foreground">
               {isOnline
                 ? tripRequests.length > 0

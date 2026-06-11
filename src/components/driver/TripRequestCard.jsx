@@ -193,7 +193,7 @@ export default function TripRequestCard({ trip, onAccept, onDecline, queueMode =
                   <DollarSign className="w-4 h-4 text-accent" />
                 </div>
                 <p className="text-xs text-muted-foreground">Earnings</p>
-                <p className="font-heading font-semibold text-accent">${estimatedEarnings}</p>
+                <p className="font-heading font-semibold text-accent">₵{estimatedEarnings}</p>
               </div>
             </div>
 
@@ -217,6 +217,17 @@ export default function TripRequestCard({ trip, onAccept, onDecline, queueMode =
                 {accepting ? "Adding..." : queueMode ? "Queue Trip" : "Accept"}
               </Button>
             </div>
+
+            {/* Passenger Phone (shown when card is expanded) */}
+            {trip.passenger_phone && (
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">PASSENGER PHONE</p>
+                  <p className="text-sm font-semibold text-white">{trip.passenger_phone}</p>
+                </div>
+                <Phone className="w-5 h-5 text-blue-400" />
+              </div>
+            )}
 
             {/* Quick Actions */}
             <div className="grid grid-cols-3 gap-2 pt-2">

@@ -9,6 +9,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { TabStateProvider } from './lib/TabStateContext';
 
 import ProtectedRoute from '@/components/ProtectedRoute';
+import AuthRedirectRoute from '@/components/AuthRedirectRoute';
 import SplashScreen from './pages/SplashScreen';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -51,10 +52,10 @@ const AuthenticatedApp = () => {
         >
           <Routes location={location}>
             <Route path="/" element={<SplashScreen />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<AuthRedirectRoute><Login /></AuthRedirectRoute>} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/driver-app" element={<DriverApp />} />
+            <Route path="/driver-app" element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />}><DriverApp /></ProtectedRoute>} />
             <Route path="/driver-register" element={<DriverRegister />} />
             <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
               <Route path="/earnings" element={<DriverEarningsDashboard />} />
