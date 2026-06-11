@@ -1,8 +1,9 @@
 // HY3N Driver — FCM Service Worker
 // Handles: FCM background push notifications + offline caching
+// IMPORTANT: Must use v12 compat scripts to match the app's Firebase SDK version.
 
-importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.14.0/firebase-messaging-compat.js');
 
 // ── Firebase init ──────────────────────────────────────────────────────────────
 firebase.initializeApp({
@@ -17,7 +18,7 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 // ── Offline cache ──────────────────────────────────────────────────────────────
-const CACHE_NAME = 'hy3n-driver-v2';
+const CACHE_NAME = 'hy3n-driver-v3';
 const PRECACHE = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
@@ -47,11 +48,15 @@ self.addEventListener('fetch', (event) => {
 });
 
 // ── FCM background message handler ────────────────────────────────────────────
+// The v12 compat SDK auto-displays notification payloads, so this handler is
+// only needed for data-only messages (no notification field).
 messaging.onBackgroundMessage((payload) => {
   console.log('[HY3N Driver FCM SW] Background message received:', payload);
-  const title = payload.notification?.title || payload.data?.title || 'HY3N Driver';
-  const body = payload.notification?.body || payload.data?.body || '';
-  const icon = payload.notification?.icon || '/icon-192.png';
+  // Only manually show notification for data-only messages
+  if (payload.notification) return; // SDK handles it automatically
+  const title = payload.data?.title || 'HY3N Driver';
+  const body = payload.data?.body || '';
+  const icon = '/icon-192.png';
   const tag = payload.data?.tag || 'hy3n-driver';
 
   self.registration.showNotification(title, {
@@ -73,6 +78,8 @@ self.addEventListener('notificationclick', (event) => {
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
+          // Post a message to the page so it can refresh its ride state
+          client.postMessage({ type: 'FCM_NOTIFICATION_CLICK', data: event.notification.data });
           return client.focus();
         }
       }

@@ -26,7 +26,7 @@ import RideChatModal from "@/components/shared/RideChatModal";
 // ─── Trip Request Bottom Sheet with countdown ────────────────────────────────
 const ACCEPT_TIMEOUT = 20;
 
-function TripRequestSheet({ trip, onAccept, onDecline }) {
+function TripRequestSheet({ trip, onAccept, onDecline, driverProfileId }) {
   const [timeLeft, setTimeLeft] = useState(ACCEPT_TIMEOUT);
   const [accepting, setAccepting] = useState(false);
   const [declining, setDeclining] = useState(false);
@@ -52,6 +52,10 @@ function TripRequestSheet({ trip, onAccept, onDecline }) {
         matched_at: now,
         driver_accepted_at: now,
       });
+      // Mark driver as unavailable so matching engine skips them
+      if (driverProfileId) {
+        firebaseClient.entities.DriverProfile.update(driverProfileId, { is_available: false }).catch(() => {});
+      }
       toast.success("Trip accepted! Head to pickup.");
       onAccept({ ...trip, status: "driver_arriving", matched_at: now });
     } catch {
@@ -1032,6 +1036,10 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
       setTripPhase("to_pickup");
       setCompletedFare(null);
       localCompleteRef.current = false;
+      // Mark driver as available again so they can receive new ride requests
+      if (driver?.id) {
+        firebaseClient.entities.DriverProfile.update(driver.id, { is_available: true }).catch(() => {});
+      }
       toast.success("Trip completed successfully!");
       queryClient.invalidateQueries({ queryKey: ["pending-rides"] });
       queryClient.invalidateQueries({ queryKey: ["driver-rides", driver?.id] });
@@ -1062,6 +1070,10 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
     setCancelReason("");
     setCurrentTrip(null);
     setTripPhase("to_pickup");
+    // Mark driver as available again so they can receive new ride requests
+    if (driver?.id) {
+      firebaseClient.entities.DriverProfile.update(driver.id, { is_available: true }).catch(() => {});
+    }
     queryClient.invalidateQueries({ queryKey: ["pending-rides"] });
   };
 
@@ -1206,6 +1218,7 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
             trip={tripRequests[0]}
             onAccept={handleAcceptTrip}
             onDecline={handleDeclineTrip}
+            driverProfileId={driver?.id}
           />
         )}
         {showActive && (

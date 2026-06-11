@@ -22,7 +22,12 @@ export default function DriverStatusBar({ driver, isOnline, onToggle, tripReques
   const updateStatus = useMutation({
     mutationFn: async (status) => {
       if (!driver) return;
-      await firebaseClient.entities.DriverProfile.update(driver.id, { is_online: status === "active" });
+      const isActive = status === "active";
+      // When going online, mark available; when going offline, mark unavailable
+      await firebaseClient.entities.DriverProfile.update(driver.id, {
+        is_online: isActive,
+        is_available: isActive,
+      });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["driver-profile"] }),
   });
