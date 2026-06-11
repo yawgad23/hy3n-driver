@@ -17,6 +17,8 @@ import {
 import HourlyRateChart from "@/components/earnings/HourlyRateChart";
 import TripPerformanceTable from "@/components/earnings/TripPerformanceTable";
 import EarningsPrediction from "@/components/earnings/EarningsPrediction";
+import EarningsHeatMap from "@/components/earnings/EarningsHeatMap";
+import DriverStreakBonuses from "@/components/earnings/DriverStreakBonuses";
 
 const TOOLTIP_STYLE = {
   backgroundColor: "hsl(var(--card))",
@@ -228,9 +230,19 @@ export default function DriverEarningsDashboard() {
         </motion.div>
       </div>
 
+      {/* Earnings Heat Map */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
+        <EarningsHeatMap trips={trips} />
+      </motion.div>
+
       {/* Trip Performance Table */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}>
         <TripPerformanceTable trips={trips} />
+      </motion.div>
+
+      {/* Streak & Bonuses */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.26 }}>
+        <DriverStreakBonuses trips={trips} />
       </motion.div>
 
       {/* Summary Stats */}
