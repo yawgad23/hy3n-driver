@@ -606,6 +606,9 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
   const [safetyData, setSafetyData] = useState(null);
   const [showFareScreen, setShowFareScreen] = useState(false);
   const [completedFare, setCompletedFare] = useState(null); // { finalFare, actualKm, durationMin }
+  // Tracks whether the driver triggered trip completion locally (so the Firestore
+  // 'completed' status change doesn't clear currentTrip before the fare screen shows)
+  const localCompleteRef = useRef(false);
   const [showCallOptions, setShowCallOptions] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -806,6 +809,20 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
         stopGpsTracking();
         return;
       }
+      // When the ride is marked completed externally (e.g. admin action or re-sync),
+      // clear currentTrip so the bottom nav is restored.
+      // But if the driver triggered completion locally (localCompleteRef = true),
+      // keep currentTrip alive until the fare screen is dismissed.
+      if (newStatus === 'completed' && oldStatus !== 'completed') {
+        if (!localCompleteRef.current) {
+          // External completion (admin, etc.) — clear immediately
+          setCurrentTrip(null);
+          setTripPhase('to_pickup');
+          stopGpsTracking();
+        }
+        // If local, handleCompleteTrip already set showFareScreen — do nothing here.
+        return;
+      }
       // Sync trip phase with status
       if (newStatus === 'driver_arrived' && oldStatus !== 'driver_arrived') {
         setTripPhase('arrived');
@@ -869,6 +886,9 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
 
   const handleCompleteTrip = async () => {
     if (!currentTrip) return;
+    // Mark as locally triggered so the Firestore listener doesn't clear currentTrip
+    // before the fare screen has a chance to display
+    localCompleteRef.current = true;
     stopGpsTracking();
     try {
       // Use ONLY actual GPS-tracked distance.
@@ -998,6 +1018,7 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
       setCurrentTrip(null);
       setTripPhase("to_pickup");
       setCompletedFare(null);
+      localCompleteRef.current = false;
       toast.success("Trip completed successfully!");
       queryClient.invalidateQueries({ queryKey: ["pending-rides"] });
       queryClient.invalidateQueries({ queryKey: ["driver-rides", driver?.id] });
@@ -1335,7 +1356,16 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
       {/* ── Post-trip Summary (Rating + Safety) ── */}
       <TripSummaryDialog
         open={showTripSummary}
-        onOpenChange={setShowTripSummary}
+        onOpenChange={(open) => {
+          setShowTripSummary(open);
+          // If dialog is closed without submitting, clean up state so bottom nav returns
+          if (!open) {
+            setCurrentTrip(null);
+            setTripPhase("to_pickup");
+            setCompletedFare(null);
+            localCompleteRef.current = false;
+          }
+        }}
         passengerName={currentTrip?.rider_name || currentTrip?.passenger_name || "Passenger"}
         safetyData={safetyData}
         tripDuration={currentTrip?.duration_min}
