@@ -26,6 +26,20 @@ import RideChatModal from "@/components/shared/RideChatModal";
 // ─── Trip Request Bottom Sheet with countdown ────────────────────────────────
 const ACCEPT_TIMEOUT = 20;
 
+// Known high-risk area keywords for Ghana (Accra / Kumasi focus)
+// Drivers see a caution banner when the pickup address matches any of these
+const HIGH_RISK_AREA_KEYWORDS = [
+  "Nima", "Mamobi", "Agbogbloshie", "Sabon Zongo", "Darkuman", "Chorkor",
+  "Bukom", "Ussher", "James Town", "Jamestown", "Adabraka Night",
+  "Ashaiman", "Avenor", "Alajo", "Kotobabi", "Abeka",
+];
+
+function getAreaAlert(address) {
+  if (!address) return null;
+  const lower = address.toLowerCase();
+  return HIGH_RISK_AREA_KEYWORDS.find(k => lower.includes(k.toLowerCase())) || null;
+}
+
 function TripRequestSheet({ trip, onAccept, onDecline, driverProfileId }) {
   const [timeLeft, setTimeLeft] = useState(ACCEPT_TIMEOUT);
   const [accepting, setAccepting] = useState(false);
@@ -209,6 +223,19 @@ function TripRequestSheet({ trip, onAccept, onDecline, driverProfileId }) {
           </div>
         </div>
 
+        {/* ── Driver Alert: high-risk pickup area ── */}
+        {(() => {
+          const alert = getAreaAlert(trip.pickup_address || trip.pickup_location);
+          return alert ? (
+            <div className="mx-4 mb-2 bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-bold text-amber-500">Area Notice</p>
+                <p className="text-[11px] text-muted-foreground">Pickup is near {alert}. Stay alert and trust your instincts.</p>
+              </div>
+            </div>
+          ) : null;
+        })()}
         {/* Action buttons */}
         <div className="grid grid-cols-2 gap-3 px-4 pt-3" style={{ paddingBottom: "calc(5rem + env(safe-area-inset-bottom))" }}>
           <Button
@@ -241,6 +268,28 @@ function TripRequestSheet({ trip, onAccept, onDecline, driverProfileId }) {
 // ─── Active Trip Bottom Sheet ─────────────────────────────────────────────────
 function ActiveTripSheet({ trip, tripPhase, driver, onArrived, onStartTrip, onComplete, onCancel, onOpenChat, unreadCount, onCall, callStatus }) {
   const [expanded, setExpanded] = useState(false);
+  const [showOtpEntry, setShowOtpEntry] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [otpError, setOtpError] = useState(false);
+
+  const handleStartWithOtp = () => {
+    if (!trip.pickup_code) {
+      // No OTP set — allow starting without code
+      onStartTrip();
+      return;
+    }
+    if (!showOtpEntry) {
+      setShowOtpEntry(true);
+      return;
+    }
+    if (otpValue === String(trip.pickup_code)) {
+      setOtpError(false);
+      setShowOtpEntry(false);
+      onStartTrip();
+    } else {
+      setOtpError(true);
+    }
+  };
 
   const openNav = () => {
     const dest = tripPhase === "to_pickup"
@@ -414,12 +463,34 @@ function ActiveTripSheet({ trip, tripPhase, driver, onArrived, onStartTrip, onCo
                 <Clock className="w-4 h-4 text-yellow-500 shrink-0" />
                 <p className="text-xs text-yellow-500 font-medium">Waiting for passenger — waiting fees apply after 3 min</p>
               </div>
+              {/* OTP Entry — shown after driver taps Start Trip */}
+              {showOtpEntry && (
+                <div className="bg-secondary rounded-2xl p-4 mb-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="w-4 h-4 text-primary" />
+                    <p className="text-sm font-semibold">Enter Passenger's Pickup Code</p>
+                  </div>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={otpValue}
+                    onChange={e => { setOtpValue(e.target.value.slice(0, 4)); setOtpError(false); }}
+                    placeholder="_ _ _ _"
+                    className={`w-full text-center text-3xl font-heading font-black tracking-[0.3em] bg-background border-2 rounded-xl h-14 outline-none ${
+                      otpError ? "border-red-500 text-red-500" : "border-primary/40 focus:border-primary"
+                    }`}
+                    autoFocus
+                  />
+                  {otpError && <p className="text-xs text-red-500 text-center mt-1">Incorrect code — ask the passenger for the correct code</p>}
+                </div>
+              )}
               <Button
                 className="w-full h-16 text-lg font-bold bg-primary hover:bg-primary/90 rounded-2xl shadow-lg shadow-primary/30"
-                onClick={onStartTrip}
+                onClick={handleStartWithOtp}
               >
                 <Zap className="w-6 h-6 mr-3" />
-                Start Trip
+                {showOtpEntry ? "Verify & Start Trip" : "Start Trip"}
               </Button>
               <Button
                 variant="outline"
@@ -869,10 +940,30 @@ export default function DriverHomeTab({ driver, isOnline, onToggleOnline, commis
     setTripPhase("to_pickup");
     setTripRequests([]);
     setUnreadCount(0);
+    // Track acceptance for acceptance rate calculation
+    if (driver?.id) {
+      const prev = driver.total_accepted || 0;
+      const total = (driver.total_accepted || 0) + (driver.total_declined || 0) + 1;
+      const rate = Math.round(((prev + 1) / total) * 100);
+      firebaseClient.entities.DriverProfile.update(driver.id, {
+        total_accepted: prev + 1,
+        acceptance_rate: rate,
+      }).catch(() => {});
+    }
   };
 
   const handleDeclineTrip = (tripId) => {
     setTripRequests(prev => prev.filter(t => t.id !== tripId));
+    // Track decline for acceptance rate calculation
+    if (driver?.id) {
+      const prev = driver.total_declined || 0;
+      const total = (driver.total_accepted || 0) + prev + 1;
+      const rate = Math.round(((driver.total_accepted || 0) / total) * 100);
+      firebaseClient.entities.DriverProfile.update(driver.id, {
+        total_declined: prev + 1,
+        acceptance_rate: rate,
+      }).catch(() => {});
+    }
   };
 
   const handleArrived = async () => {

@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
-  DollarSign, Car, Star, Clock, TrendingUp, Target, Award, Flame
+  DollarSign, Car, Star, Clock, TrendingUp, Target, Award, Flame, CheckCircle
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -91,7 +91,7 @@ export default function DriverEarningsSnapshot({ driver, todayTrips = [], onNavi
       </Card>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <Card>
           <CardContent className="p-3 text-center">
             <Star className="w-4 h-4 text-yellow-500 mx-auto mb-1" />
@@ -106,16 +106,46 @@ export default function DriverEarningsSnapshot({ driver, todayTrips = [], onNavi
             <p className="text-[10px] text-muted-foreground">Total Trips</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-3 text-center">
-            <Award className="w-4 h-4 text-purple-500 mx-auto mb-1" />
-            <p className="font-heading font-bold">
-              {driver?.safety_metrics?.overall_safety_score || 98}%
-            </p>
-            <p className="text-[10px] text-muted-foreground">Safety</p>
-          </CardContent>
-        </Card>
       </div>
+
+      {/* Acceptance Rate */}
+      <Card className={cn(
+        "border",
+        (driver?.acceptance_rate || 0) >= 80 ? "border-green-500/30 bg-green-500/5" :
+        (driver?.acceptance_rate || 0) >= 60 ? "border-yellow-500/30 bg-yellow-500/5" :
+        "border-red-500/30 bg-red-500/5"
+      )}>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <CheckCircle className={cn(
+                "w-4 h-4",
+                (driver?.acceptance_rate || 0) >= 80 ? "text-green-500" :
+                (driver?.acceptance_rate || 0) >= 60 ? "text-yellow-500" : "text-red-500"
+              )} />
+              <span className="font-medium text-sm">Acceptance Rate</span>
+            </div>
+            <span className={cn(
+              "text-lg font-heading font-bold",
+              (driver?.acceptance_rate || 0) >= 80 ? "text-green-500" :
+              (driver?.acceptance_rate || 0) >= 60 ? "text-yellow-500" : "text-red-500"
+            )}>
+              {driver?.acceptance_rate !== undefined ? `${driver.acceptance_rate}%` : "—"}
+            </span>
+          </div>
+          <Progress
+            value={driver?.acceptance_rate || 0}
+            className="h-2"
+          />
+          <p className="text-[10px] text-muted-foreground mt-1.5">
+            {(driver?.acceptance_rate || 0) >= 80
+              ? "Great! High acceptance keeps you a priority driver."
+              : (driver?.acceptance_rate || 0) >= 60
+              ? "Accepting more rides improves your dispatch priority."
+              : "Low acceptance rate — try to accept more rides."}
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Streak */}
       {driver?.total_trips >= 5 && (
