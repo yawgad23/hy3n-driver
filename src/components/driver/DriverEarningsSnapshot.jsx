@@ -130,7 +130,7 @@ export default function DriverEarningsSnapshot({ driver, todayTrips = [], onNavi
               (driver?.acceptance_rate || 0) >= 80 ? "text-green-500" :
               (driver?.acceptance_rate || 0) >= 60 ? "text-yellow-500" : "text-red-500"
             )}>
-              {driver?.acceptance_rate !== undefined ? `${driver.acceptance_rate}%` : "—"}
+              {driver?.acceptance_rate !== undefined ? `${driver?.acceptance_rate}%` : "—"}
             </span>
           </div>
           <Progress
